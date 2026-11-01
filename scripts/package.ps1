@@ -57,6 +57,9 @@ git log --oneline | Out-File -Encoding utf8 "$dist\repo\commit_log_oneline.txt"
 Step "zip"
 $zip = Join-Path $root "dist\$name.zip"
 if (Test-Path $zip) { Remove-Item -Force $zip }
-Compress-Archive -Path $dist -DestinationPath $zip
+# windows' bundled bsdtar writes standard zip entries with '/' separators;
+# Compress-Archive in windows powershell 5.1 writes '\', which breaks unzip on other systems
+& "$env:SystemRoot\System32\tar.exe" -a -c -f $zip -C (Join-Path $root "dist") $name
+if ($LASTEXITCODE -ne 0) { throw "zip failed" }
 $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 Write-Host "`nwrote $zip ($mb MB)" -ForegroundColor Green
