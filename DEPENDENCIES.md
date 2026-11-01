@@ -21,6 +21,7 @@ browser's built-in webgl 1 and canvas 2d. nothing is fetched from the internet a
 | ninja | 1.13.2 | apache-2.0 |
 | microsoft edge (headless) | system | used only to render the report pdf and plot pngs |
 | node.js | 24.19.0 | mit; only runs `scripts/capture_walkthrough.mjs` (screenshots for docs), never the app |
+| python + pypdf | 3.12.10 + 6.16.1 | psf / bsd-3-clause; only appends the handwritten pages in `scripts/make_submission_pdf.ps1` |
 
 exact versions are pinned in [toolchain.lock](toolchain.lock).
 

@@ -130,6 +130,19 @@ a dev build finds the frontend in `src/frontend` and the examples in `data/` aut
 | `build\wb_datagen.exe examples data\examples` | regenerate the example stl and csv |
 | `build\Launch.exe --ready-check` | print launch-to-ready time and exit |
 | `powershell -ExecutionPolicy Bypass -File scripts\package.ps1 -CandidateId <id>` | build, test and zip |
+| `powershell -ExecutionPolicy Bypass -File scripts\handwritten_to_pdf.ps1` | photos in `docs\handwritten\` → `docs\handwritten_backprop.pdf` (package.ps1 runs it when needed) |
+| `powershell -ExecutionPolicy Bypass -File scripts\make_submission_pdf.ps1 -CandidateId <id> -ZipUrl <link>` | the single ≤ 1 mb pdf for the form: cover with zip link + sha-256, report, handwritten appendix |
+| `node scripts\capture_walkthrough.mjs http://127.0.0.1:8765 docs\walkthrough` | recapture the screenshot walkthrough from a running app |
+
+### submitting
+
+1. photograph the two handwritten pages and save them as `docs\handwritten\page1.jpg` and `page2.jpg`.
+2. `scripts\package.ps1 -CandidateId <id>` builds, tests, makes the handwritten pdf, writes the candidate id
+   into the packaged report and zips everything. it ends with a readiness check that lists anything still
+   missing (hours, signature, ai-log section, uncommitted changes).
+3. upload `dist\<id>_Workbench.zip` somewhere a reviewer can download it without signing in.
+4. `scripts\make_submission_pdf.ps1 -CandidateId <id> -ZipUrl <link>` writes `dist\<id>_Workbench_submission.pdf`
+   for the form. it records the zip's sha-256, so upload exactly the zip from step 2.
 
 ## results at a glance
 
