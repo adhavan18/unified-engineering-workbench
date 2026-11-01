@@ -79,3 +79,9 @@ add_executable(wb_tests
 target_link_libraries(wb_tests PRIVATE wb_server)
 # tests read tests/fixtures relative to the source root
 add_test(NAME unit_and_numerical_tests COMMAND wb_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# ---- timing experiments kept as evidence for the performance write-up ------
+add_executable(wb_order_probe tools/experiments/order_probe.cpp)
+target_link_libraries(wb_order_probe PRIVATE wb_core)
+add_executable(wb_thread_probe tools/experiments/thread_probe.cpp)
+target_link_libraries(wb_thread_probe PRIVATE wb_core)

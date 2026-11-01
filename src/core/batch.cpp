@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <memory>
 #include <random>
 #include <stdexcept>
 
@@ -130,58 +131,64 @@ BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
     std::sort(workers.begin(), workers.end());
     report.config.workers = workers;
 
-    // case generation is not part of the timed region
+    // case generation and thread start-up are not part of the timed region
     const auto cases = generate_cases(cfg.batch);
     const int elements = cfg.batch.elements;
-    const std::size_t runs_per_config = static_cast<std::size_t>(cfg.warmups + cfg.repetitions);
-    const std::size_t total_runs = runs_per_config * (workers.size() + 1);
+    std::vector<std::unique_ptr<WorkerPool>> pools;
+    for (int w : workers) pools.push_back(std::make_unique<WorkerPool>(w));
+
+    // row 0 is serial, row k is workers[k-1]
+    report.rows.resize(workers.size() + 1);
+    report.rows[0].label = "serial";
+    for (std::size_t k = 0; k < workers.size(); ++k) {
+        report.rows[k + 1].label = "parallel";
+        report.rows[k + 1].workers = workers[k];
+    }
+
+    const std::size_t configs = report.rows.size();
+    const std::size_t total_runs = static_cast<std::size_t>(cfg.warmups + cfg.repetitions) * configs;
     std::size_t runs_done = 0;
-    auto tick = [&] { if (progress) progress(++runs_done, total_runs); };
     if (progress) progress(0, total_runs);  // first real tick only arrives after a full run
 
     using clock = std::chrono::steady_clock;
-    auto seconds_since = [](clock::time_point t0) {
-        return std::chrono::duration<double>(clock::now() - t0).count();
+    BatchOutput reference;
+    // runs one configuration once; returns false if cancelled
+    auto run_once = [&](std::size_t k, bool measured, bool first) {
+        const auto t0 = clock::now();
+        BatchOutput out = k == 0 ? run_serial(cases, elements, cancel)
+                                 : run_parallel(cases, elements, *pools[k - 1], cancel);
+        const double t = std::chrono::duration<double>(clock::now() - t0).count();
+        if (out.cancelled) return false;
+        if (measured) report.rows[k].times_s.push_back(t);
+        // the first run of each config is kept for the agreement check
+        if (first && k == 0) reference = std::move(out);
+        else if (first) report.rows[k].max_abs_diff_C = max_abs_difference(reference, out);
+        if (progress) progress(++runs_done, total_runs);
+        return true;
     };
 
-    // serial reference. the first warm-up (or first measured run) is kept for the
-    // agreement check; later runs are timed and their output discarded.
-    BenchRow serial;
-    serial.label = "serial";
-    BatchOutput reference;
-    for (std::size_t r = 0; r < runs_per_config; ++r) {
-        const auto t0 = clock::now();
-        BatchOutput out = run_serial(cases, elements, cancel);
-        const double t = seconds_since(t0);
-        if (out.cancelled) { report.cancelled = true; return report; }
-        if (r >= static_cast<std::size_t>(cfg.warmups)) serial.times_s.push_back(t);
-        if (r == 0) reference = std::move(out);
-        tick();
-    }
-    serial.median_s = median(serial.times_s);
-    serial.speedup = 1.0;
-    serial.efficiency = 1.0;
-    report.rows.push_back(serial);
-
-    for (int w : workers) {
-        WorkerPool pool(w);  // threads start here, outside the timed region
-        BenchRow row;
-        row.label = "parallel";
-        row.workers = w;
-        for (std::size_t r = 0; r < runs_per_config; ++r) {
-            const auto t0 = clock::now();
-            BatchOutput out = run_parallel(cases, elements, pool, cancel);
-            const double t = seconds_since(t0);
-            if (out.cancelled) { report.cancelled = true; return report; }
-            if (r >= static_cast<std::size_t>(cfg.warmups)) row.times_s.push_back(t);
-            if (r == 0) row.max_abs_diff_C = max_abs_difference(reference, out);
-            tick();
+    // configurations are interleaved inside every repetition (serial, p1, p2, ...)
+    // rather than run as blocks. on laptops the turbo budget runs out after a few
+    // seconds of load; blocks would give the first config the fast clock and every
+    // later config the throttled one, biasing the speedup.
+    const int rounds = cfg.warmups + cfg.repetitions;
+    for (int r = 0; r < rounds; ++r) {
+        for (std::size_t k = 0; k < configs; ++k) {
+            if (!run_once(k, r >= cfg.warmups, r == 0)) {
+                report.cancelled = true;
+                return report;
+            }
         }
+    }
+
+    const double t_serial = median(report.rows[0].times_s);
+    for (auto& row : report.rows) {
         row.median_s = median(row.times_s);
-        row.speedup = row.median_s > 0.0 ? serial.median_s / row.median_s : 0.0;
-        row.efficiency = row.speedup / w;
-        if (!(row.max_abs_diff_C <= report.agreement_limit_C)) report.agreement_ok = false;
-        report.rows.push_back(row);
+        row.speedup = row.median_s > 0.0 ? t_serial / row.median_s : 0.0;
+        row.efficiency = row.speedup / row.workers;
+        if (row.label == "parallel" && !(row.max_abs_diff_C <= report.agreement_limit_C)) {
+            report.agreement_ok = false;
+        }
     }
     return report;
 }

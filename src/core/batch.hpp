@@ -80,8 +80,10 @@ struct BenchReport {
 
 std::string validate(const BenchConfig& cfg);
 
-// runs warm-up + measured repetitions for serial and each worker count.
-// `progress` is called after every run; `cancel` is polled between cases.
+// runs warm-up + measured repetitions for serial and each worker count, with the
+// configurations interleaved inside each repetition so that cpu turbo/thermal
+// drift hits all of them equally. `progress` is called after every run;
+// `cancel` is polled between cases.
 BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
                           const std::atomic<bool>* cancel = nullptr,
                           const Progress& progress = {});
