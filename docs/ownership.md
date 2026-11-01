@@ -13,7 +13,8 @@ session, prompts and every error the ai made are recorded in [ai_use_log.md](ai_
 that session carry a `Co-Authored-By: Claude` trailer.
 
 **candidate's original work:** direction and acceptance of the work; the handwritten backpropagation appendix;
-the demonstration walkthrough; and the edits listed at the end of the ai-use log.
+and the edits listed at the end of the ai-use log. (the screenshot walkthrough was captured by an ai-written
+script, `scripts/capture_walkthrough.mjs`, driving the real app; a demo video, if added, is the candidate's.)
 
 *(the candidate should adjust this paragraph so that it is true, then sign below.)*
 

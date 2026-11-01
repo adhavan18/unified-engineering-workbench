@@ -12,8 +12,8 @@ session, and every "wrong" item below actually happened and is visible in the gi
 | python 3 (local) | – | independent reference values for the backprop tests and the study sheet |
 | microsoft edge (headless) | – | rendering svg plots to png for visual checks, report pdf |
 
-sessions: 2026-11-01, roughly 09:55–11:05 (first build), 11:20–12:10 (ui rebuild) and 13:40–14:30 (audit
-against the brief), local time; see [effort_log.md](effort_log.md). every commit from these windows was made
+sessions: 2026-11-01, roughly 09:55–11:05 (first build), 11:20–12:10 (ui rebuild) and 13:40–14:05 (audit
+against the brief), and 2026-11-02 05:10–05:45 (final verification), local time; see [effort_log.md](effort_log.md). every commit from these windows was made
 during the sessions and carries a `Co-Authored-By: Claude` trailer.
 
 ## representative prompts (verbatim, from the candidate)
@@ -31,6 +31,8 @@ during the sessions and carries a `Co-Authored-By: Claude` trailer.
 9. "is everything done? show me"
 10. "make this the best submission. fine tune this however u can and follow the doc." and, mid-way,
     "are u following it?"
+11. "are u done with everything. can u pakc it and zip?. check everythingn i need everything tgo be proper.
+    put maximum effort."
 
 prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
 picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt
@@ -38,7 +40,8 @@ the ui around live interaction plus an in-app requirement checklist. prompt 8 le
 with a link to the zip and its sha-256, while waiting for the organisers' answer.
 
 prompt 10 drove a third pass: the assistant re-read the brief and the rubric line by line and checked each
-against the repo and the running app. what it found and fixed is items 16–19 below.
+against the repo and the running app. what it found and fixed is items 16–19 below. prompt 11 led to a
+final verification from a fresh clone of the bundle (items 20–21).
 
 the prompts were short; the brief itself served as the specification. the assistant was asked (by its own
 operating rules and by prompt 5) to work from the brief, keep the docs lowercase and not fabricate evidence.
@@ -125,6 +128,21 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
    400 from the backend and show an error toast, although the right move is simply "use run as job". seen in
    the captured frames. the ui now skips the live request above the same 200,000-node limit and says so in
    the status bar. the limit messages also print `19,500,160` instead of `19500160`.
+20. **the one-pdf workaround dropped the handwritten appendix.** the ≤ 1 mb submission pdf from prompt 8
+   carried the report and a link to the zip, but the handwritten pages (4 of the 7 backprop points) would
+   only have been inside the zip, behind a download. the packaging now turns photos in `docs/handwritten/`
+   into a 2-page pdf (exif rotation applied, each page kept ≤ 300 kb) and appends it to the submission pdf.
+   tested with synthetic pages, including noisy 12-megapixel photos with a rotate-90 exif flag: 2 a4 pages,
+   585 kb, upright. the test images never entered the repo.
+21. **the packaged report kept a blank candidate id.** only the submission pdf filled it in; `docs/report.pdf`
+   in the zip still said "candidate id: ________". the package script now prints the packaged report with
+   the id, and ends with a readiness check listing what the candidate still has to add.
+
+verification in this pass, all from a fresh clone of `repo/workbench.bundle`: release build with zero
+warnings, 78/78 tests, `wb_report fea` / `backprop` and `wb_datagen examples` regenerate files that are
+byte-identical to the committed `results/` and `data/examples/`, 45 relative links in the package resolve,
+no absolute paths or personal data in any text file, every view of the packaged app loads with no console
+errors, and every csv export route returns a file.
 
 ## challenge test
 

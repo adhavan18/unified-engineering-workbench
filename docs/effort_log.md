@@ -11,7 +11,8 @@ the brief asks for actual effort, recorded honestly (target 40–50 h).
 | 2026-11-01 | 10:31–10:41 | benchmark bias investigation, results, three sessions (91ef90f … 41dc5e3) |
 | 2026-11-01 | 10:41–~11:00 | documentation, report, packaging, walkthrough |
 | 2026-11-01 | ~11:20–12:10 | second iteration after the candidate rejected the first ui: interactive backend routes, ui rebuild, new walkthrough, ≤ 1 mb submission pdf (9dcb40d … 84e053e) |
-| 2026-11-01 | ~13:40–14:30 | audit against every line of the brief and rubric: evidence detection in the overview, real-time walkthrough (14 frames), readable limit messages, live-solve hint for fine meshes, personal email removed from history, docs refreshed |
+| 2026-11-01 | ~13:40–14:05 | audit against every line of the brief and rubric: evidence detection in the overview, real-time walkthrough (14 frames), readable limit messages, live-solve hint for fine meshes, personal email removed from history, docs refreshed |
+| 2026-11-02 | ~05:10–05:45 | final verification: fresh clone from the bundle builds with 0 warnings and passes, regenerated results and example data are byte-identical, link and path checks, packaged-app smoke test; handwritten-pages pipeline, readiness check in the packager |
 
 these are wall-clock windows of an ai-assisted session, not the candidate's own study time.
 
