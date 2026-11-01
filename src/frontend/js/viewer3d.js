@@ -284,7 +284,7 @@ export class Viewer {
     let drag = null;
     cv.addEventListener('contextmenu', (e) => e.preventDefault());
     cv.addEventListener('pointerdown', (e) => {
-      cv.setPointerCapture(e.pointerId);
+      try { cv.setPointerCapture(e.pointerId); } catch { /* synthetic or already-released pointer */ }
       drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, pan: e.button === 2 || e.shiftKey || e.button === 1 };
     });
     cv.addEventListener('pointermove', (e) => {
