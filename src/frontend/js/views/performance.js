@@ -1,7 +1,7 @@
 // performance view: serial vs worker-pool benchmark run as a backend job.
 
-import { download, query, runJob } from '../api.js';
-import { cell, fmt, jobFinished, jobProgress, jobStarted, setFacts, showError, validateForm } from '../ui.js';
+import { download, getJson, query, runJob } from '../api.js';
+import { cell, fmt, jobFinished, jobProgress, jobStarted, setFacts, setStatus, showError, validateForm } from '../ui.js';
 import { LinePlot } from '../plot.js';
 
 const $ = (s) => document.querySelector(s);
@@ -55,6 +55,19 @@ async function run() {
     showError(e, 'benchmark');
   } finally {
     button.disabled = false;
+  }
+}
+
+// reopens a finished benchmark job (e.g. ?view=performance&job=benchmark-3)
+export async function showJob(id) {
+  try {
+    const s = await getJson(`/api/jobs/${encodeURIComponent(id)}`);
+    if (s.state !== 'done') return;
+    lastJob = s.id;
+    render(s.result);
+    setStatus(`showing finished job ${s.id}`);
+  } catch (e) {
+    showError(e, 'reopen job');
   }
 }
 

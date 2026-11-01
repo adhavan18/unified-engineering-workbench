@@ -2,9 +2,9 @@
 
 import { getJson, postJson } from './api.js';
 import { initJobCancel, setStatus, showError, toast } from './ui.js';
-import { initGeometry } from './views/geometry.js';
+import { initGeometry, inspectHottestNode } from './views/geometry.js';
 import { initThermal, plots as thermalPlots } from './views/thermal.js';
-import { initPerformance, plots as perfPlots } from './views/performance.js';
+import { initPerformance, plots as perfPlots, showJob as showPerfJob } from './views/performance.js';
 import { initHardware } from './views/hardware.js';
 import { initBackprop, showBackprop, plots as bpPlots } from './views/backprop.js';
 
@@ -77,11 +77,54 @@ async function start() {
 
   let saved = 'geometry';
   try { saved = localStorage.getItem('wb.view') || 'geometry'; } catch { /* ignore */ }
-  selectView(saved);
+  const params = new URLSearchParams(location.search);
+  selectView(params.get('view') || saved);
+  if (params.has('demo')) runDemo(params.get('view') || saved);
+  if (params.has('job')) showPerfJob(params.get('job'));
 
   setInterval(heartbeat, 3000);
   setInterval(refreshLog, 1000);
   if (status && !status.system) toast('backend status is incomplete', { kind: 'info' });
+}
+
+// ?view=<name>&demo replays the example steps a person would click, for the
+// screenshot walkthrough and the demo video. it only presses existing buttons.
+async function runDemo(view) {
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const click = (sel) => document.querySelector(sel)?.click();
+  if (view === 'geometry') {
+    click('#stl-example');
+    await wait(400);
+    click('#csv-example');
+    await wait(700);
+    inspectHottestNode();
+  } else if (view === 'thermal') {
+    click('#fea-run');
+  } else if (view === 'performance') {
+    click('#perf-run');
+  } else if (view === 'hardware') {
+    click('#hw-discover');
+    await wait(400);
+    const jtag = $('#dev-jtag0 [data-fault]');
+    jtag.value = 'timeout_once';
+    jtag.dispatchEvent(new Event('change'));
+    await wait(300);
+    click('#dev-jtag0 [data-act="connect"]');
+    await wait(700);
+    click('#dev-jtag0 [data-act="connect"]');
+    await wait(300);
+    click('#dev-jtag0 [data-act="telemetry"]');
+    click('#dev-mcu0 [data-act="connect"]');
+    await wait(300);
+    click('#dev-mcu0 [data-act="telemetry"]');
+  } else if (view === 'errors') {
+    selectView('geometry');
+    const input = $('#csv-file');
+    const dt = new DataTransfer();
+    dt.items.add(new File(['node_id,x_m,y_m,z_m,temperature_C\n1,0,0,0,25\n2,0.1,0,0,NaN\n'], 'broken_example.csv'));
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  }
 }
 
 start();

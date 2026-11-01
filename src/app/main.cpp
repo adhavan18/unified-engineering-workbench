@@ -110,7 +110,8 @@ int main(int argc, char** argv) {
     SetConsoleCtrlHandler(on_console_event, TRUE);
     log.add("info", "unified engineering workbench " + ctx.version + " listening on " + url);
     log.add("info", "launch-to-ready (process start -> listening): " + std::to_string(ctx.ready_ms) + " ms");
-    log.add("info", "frontend: " + ctx.www_root.u8string());
+    // relative to Launch.exe so logs never contain machine-specific paths
+    log.add("info", "frontend: " + ctx.www_root.lexically_relative(base).generic_u8string());
     log.add("info", "close this window or press quit in the ui to stop");
 
     if (open_browser) {

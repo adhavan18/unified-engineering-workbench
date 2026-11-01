@@ -238,7 +238,7 @@
       <article class="card">
         <h2>forward pass</h2>
         <dl id="bp-forward" class="facts"></dl>
-        <h2>gradients: analytic vs central difference (ε = 1e−6)</h2>
+        <h2 style="margin-top:16px">gradients: analytic vs central difference (ε = 1e−6)</h2>
         <div class="table-wrap"><table id="bp-table" class="table"><thead><tr>
           <th>param</th><th>before</th><th>∂J/∂θ analytic</th><th>central diff.</th><th>|error|</th><th>≤ 1e−5</th><th>after 1 step</th>
         </tr></thead><tbody></tbody></table></div>
@@ -255,7 +255,7 @@
         <canvas id="bp-plot" class="plot plot-short"></canvas>
         <div class="prose">
           <p>all four gradients are negative at the start: ŷ ≈ 0.462 is below the target 2, so increasing any parameter raises ŷ and lowers the loss. gradient descent steps against the gradient, so every parameter increases on the first step.</p>
-          <p>the model can hit y = 2 exactly (via c alone), so the loss keeps falling towards zero; it drops fast early, then slows as the error and therefore the gradient shrink.</p>
+          <p>the model can hit y = 2 exactly (via c alone), so the loss keeps falling towards zero. on the log axis the curve is close to a straight line: near the optimum each step shrinks the error by roughly the same factor (geometric convergence).</p>
         </div>
       </article>
     </div>

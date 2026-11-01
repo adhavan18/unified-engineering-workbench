@@ -139,6 +139,15 @@ function renderLegend(lo, hi) {
   }
 }
 
+// used by the ?demo walkthrough: inspect the hottest node without a mouse
+export function inspectHottestNode() {
+  if (!field) return;
+  let hot = 0;
+  for (let i = 1; i < field.temp.length; i++) if (field.temp[i] > field.temp[hot]) hot = i;
+  csvViewer?.setPicked(hot);
+  showNode(hot);
+}
+
 function showNode(i) {
   const box = $('#csv-pick');
   if (i < 0 || !field) { box.hidden = true; return; }
