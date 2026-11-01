@@ -280,6 +280,17 @@ http::Response Api::status() {
     w.field("ready_ms", ctx_.ready_ms).field("process_start_epoch_ms", ctx_.process_start_epoch_ms);
     w.key("system");
     write_system(w, ctx_.system);
+    // which submission evidence files ship next to the app, so the overview
+    // checklist only ticks what a reviewer can actually open
+    const auto has = [&](const char* rel) {
+        std::error_code ec;
+        return !ctx_.docs_root.empty() && fs::is_regular_file(ctx_.docs_root / rel, ec);
+    };
+    w.key("evidence").begin_object();
+    w.field("handwritten_appendix", has("handwritten_backprop.pdf"));
+    w.field("demo_video", has("demo_video.mp4") || has("demo_video.webm") || has("demo_video.mkv"));
+    w.field("walkthrough", has("walkthrough/README.md"));
+    w.end_object();
     w.end_object();
     return json_response(w.str());
 }

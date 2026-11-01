@@ -83,6 +83,24 @@ TEST(api, serves_frontend_and_blocks_path_traversal) {
     CHECK(f.call("GET", "/nope.js").status == 404);
 }
 
+TEST(api, status_reports_only_evidence_files_that_exist) {
+    Fixture f;
+    auto r = f.call("GET", "/api/status");
+    CHECK(r.status == 200);
+    // docs_root is unset in the fixture, so nothing may be claimed as present
+    CHECK(r.body.find("\"evidence\":{\"handwritten_appendix\":false,\"demo_video\":false,\"walkthrough\":false}") !=
+          std::string::npos);
+
+    // the repo's own docs folder has the walkthrough but (in git) no scans or video
+    server::AppContext c = Fixture::make_ctx();
+    c.docs_root = "docs";
+    server::Api with_docs(c, f.jobs, f.devices, f.log);
+    http::Request req;
+    std::string err;
+    CHECK(http::parse_head("GET /api/status HTTP/1.1\r\nHost: x", req, err));
+    CHECK(with_docs.handle(req).body.find("\"walkthrough\":true") != std::string::npos);
+}
+
 TEST(api, unknown_routes_and_bad_parameters_give_actionable_errors) {
     Fixture f;
     CHECK(f.call("GET", "/api/nope").status == 404);

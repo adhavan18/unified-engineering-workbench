@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
     wb::server::AppContext ctx;
     ctx.www_root = first_existing(base, {"app/www", "../src/frontend", "../../src/frontend"});
     ctx.data_root = first_existing(base, {"data", "../data", "../../data"});
+    ctx.docs_root = first_existing(base, {"docs", "../docs", "../../docs"});
     if (ctx.www_root.empty()) {
         show_fatal("the app/www folder was not found next to Launch.exe.\n"
                    "extract the whole zip (not just Launch.exe) and run it again.");

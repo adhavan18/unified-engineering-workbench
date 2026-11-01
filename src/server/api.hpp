@@ -17,6 +17,7 @@ namespace wb::server {
 struct AppContext {
     std::filesystem::path www_root;   // static frontend files
     std::filesystem::path data_root;  // example data shipped with the app
+    std::filesystem::path docs_root;  // report and evidence files (may be empty)
     std::string version = "1.0.0";
     double ready_ms = 0.0;            // process start -> listening socket
     double process_start_epoch_ms = 0.0;

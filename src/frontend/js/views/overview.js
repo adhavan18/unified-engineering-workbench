@@ -34,8 +34,13 @@ const CHECKS = [
   ['block diagram, pin/voltage table, jtag shown as a debug interface', 'hardware', '#topology', true],
   ['mock discovery, capabilities, connect/disconnect, telemetry, recoverable timeout, labelled simulated', 'hardware', '#hw-devices', true],
   ['backprop forward pass, chain rule, one update, gradient check ≤ 1e-5, 100-step loss plot', 'backprop', '#bp-graph', true],
-  ['handwritten derivation scans (two pages)', null, null, false],
-  ['3–5 minute demo video (a timestamped screenshot walkthrough is in docs/walkthrough)', null, null, false],
+];
+
+// evidence that lives in docs/ rather than in the app. the backend reports which
+// files are actually present, so nothing is ticked that a reviewer cannot open.
+const EVIDENCE = [
+  ['handwritten_appendix', 'handwritten derivation, two pages', 'docs/handwritten_backprop.pdf'],
+  ['demo', 'demonstration: timestamped screenshot walkthrough with logs, or a 3–5 minute video', 'docs/walkthrough, docs/demo_video.*'],
 ];
 
 export function initOverview(go) {
@@ -56,28 +61,44 @@ export function initOverview(go) {
   }));
 
   const list = $('#ov-checklist');
-  list.replaceChildren(...CHECKS.map(([text, view, sel, done]) => {
-    const row = document.createElement('div');
-    row.className = 'check';
-    row.innerHTML = `<span class="tick${done ? '' : ' todo'}">${done ? '✓' : '!'}</span><span></span><span class="where"></span>`;
-    row.children[1].textContent = text;
-    row.children[2].textContent = view ? `${view} →` : 'candidate to add';
-    if (view) {
-      row.style.cursor = 'pointer';
-      row.addEventListener('click', () => {
-        go(view);
-        requestAnimationFrame(() => {
-          const el = document.querySelector(`#view-${view} ${sel}`) || document.querySelector(sel);
-          if (!el) return;
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.remove('flash');
-          void el.offsetWidth;
-          el.classList.add('flash');
-        });
+  const rows = CHECKS.map(([text, view, sel]) => {
+    const row = checkRow(text, `${view} →`, true);
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', () => {
+      go(view);
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`#view-${view} ${sel}`) || document.querySelector(sel);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('flash');
+        void el.offsetWidth;
+        el.classList.add('flash');
       });
-    }
+    });
     return row;
-  }));
+  });
+  for (const [key, text, where] of EVIDENCE) {
+    const row = checkRow(text, where, false);
+    row.id = `ev-${key}`;
+    rows.push(row);
+  }
+  list.replaceChildren(...rows);
+}
+
+function checkRow(text, where, done) {
+  const row = document.createElement('div');
+  row.className = 'check';
+  row.innerHTML = '<span class="tick"></span><span></span><span class="where"></span>';
+  row.children[1].textContent = text;
+  row.children[2].textContent = where;
+  setTick(row, done);
+  return row;
+}
+
+function setTick(row, done) {
+  const tick = row.children[0];
+  tick.className = `tick${done ? '' : ' todo'}`;
+  tick.textContent = done ? '✓' : '!';
 }
 
 const proof = (id, text, ok = true) => {
@@ -99,6 +120,15 @@ export async function refreshOverview(status) {
       ['compiler', `${status.system.compiler} · ${status.system.build_type}`],
       ['version', status.version],
     ]);
+    const ev = status.evidence || {};
+    const missing = (row, text) => { setTick(row, false); row.children[2].textContent = text; };
+    const hw = $('#ev-handwritten_appendix');
+    if (ev.handwritten_appendix) setTick(hw, true); else missing(hw, 'not found: docs/handwritten_backprop.pdf');
+    const demo = $('#ev-demo');
+    if (ev.walkthrough || ev.demo_video) {
+      setTick(demo, true);
+      demo.children[2].textContent = [ev.walkthrough && 'docs/walkthrough', ev.demo_video && 'docs/demo_video'].filter(Boolean).join(' + ');
+    } else missing(demo, 'not found in docs/');
   }
   proof('B', '✓ heat-sink stl + synthetic temperature field ready to load', true);
   getJson('/api/thermal/live?meshes=10,20,40,80').then((r) => {
