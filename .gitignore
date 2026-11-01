@@ -1,5 +1,7 @@
 # build output and packaging
 build/
+build-*/
+build_*/
 dist/
 *.zip
 # local scratch

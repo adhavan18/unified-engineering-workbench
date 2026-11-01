@@ -1,40 +1,31 @@
-﻿11:59:27.804 [info] unified engineering workbench 1.0.0 listening on http://127.0.0.1:8769/
-11:59:27.805 [info] launch-to-ready (process start -> listening): 45.687256 ms
-11:59:27.805 [info] frontend: ../src/frontend
-11:59:27.805 [info] close this window or press quit in the ui to stop
-11:59:32.842 [info] device discovery (simulated): 3 devices
-11:59:39.890 [info] stl 'heatsink_ascii.stl' parsed: 96 triangles, 0 degenerate
-11:59:39.942 [info] nodal csv 'heatsink_nodal_temperatures_synthetic.csv' parsed: 6363 nodes, T 28.282 .. 85 C
-11:59:55.994 [info] benchmark job benchmark-1 started: 200 cases x 20000 elements
-12:04:53.139 [info] benchmark job benchmark-2 started: 200 cases x 20000 elements
-12:05:11.583 [info] device discovery (simulated): 3 devices
-12:05:11.889 [info] jtag0 fault: ok - fault injection set to timeout_once
-12:05:12.322 [warn] jtag0 connect: timeout - no handshake reply within 400 ms (simulated timeout). retry connect to recover
-12:05:12.369 [info] jtag0 connect: ok - connected (simulated link)
-12:05:12.433 [info] mcu0 connect: ok - connected (simulated link)
-12:05:12.514 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.529 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.604 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.605 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.666 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.667 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.730 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.730 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.780 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.794 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.933 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
-12:05:12.949 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:05:30.838 [info] device discovery (simulated): 3 devices
-12:05:30.871 [warn] POST /api/results/nodal-csv -> 422: broken_example.csv: temperature_C is not finite ('NaN')
-12:06:02.650 [info] device discovery (simulated): 3 devices
-12:06:02.927 [info] jtag0 fault: ok - fault injection set to timeout_once
-12:06:02.942 [info] jtag0 connect: already_connected - already connected
-12:06:02.955 [info] jtag0 connect: already_connected - already connected
-12:06:02.966 [info] mcu0 connect: already_connected - already connected
-12:06:03.039 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:06:03.386 [warn] jtag0 telemetry: timeout - telemetry frame not received within 400 ms (simulated). reconnect to recover
-12:06:03.464 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:06:03.557 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:06:03.620 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:06:03.683 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
-12:06:03.738 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
+13:57:43.618 [info] unified engineering workbench 1.0.0 listening on http://127.0.0.1:8765/
+13:57:43.621 [info] launch-to-ready (process start -> listening): 63.572754 ms
+13:57:43.623 [info] frontend: ../src/frontend
+13:57:43.623 [info] close this window or press quit in the ui to stop
+13:57:46.043 [info] device discovery (simulated): 3 devices
+13:57:48.290 [info] stl 'heatsink_ascii.stl' parsed: 96 triangles, 0 degenerate
+13:57:48.392 [info] nodal csv 'heatsink_nodal_temperatures_synthetic.csv' parsed: 6363 nodes, T 28.282 .. 85 C
+13:57:52.723 [info] thermal job thermal-1 started, N = 10,20,40,80,2000000,2500000,3000000,3500000,4000000,4500000
+13:57:53.354 [info] cancel requested for thermal-1
+13:57:55.008 [info] benchmark job benchmark-2 started: 200 cases x 20000 elements
+13:58:01.391 [info] device discovery (simulated): 3 devices
+13:58:01.900 [info] jtag0 fault: ok - fault injection set to timeout_once
+13:58:02.557 [warn] jtag0 connect: timeout - no handshake reply within 400 ms (simulated timeout). retry connect to recover
+13:58:02.900 [info] jtag0 connect: ok - connected (simulated link)
+13:58:03.165 [info] mcu0 connect: ok - connected (simulated link)
+13:58:04.001 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
+13:58:04.016 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
+13:58:07.300 [warn] POST /api/results/nodal-csv -> 422: broken_example.csv: temperature_C is not finite ('NaN')
+13:58:07.852 [warn] POST /api/geometry/stl -> 422: empty.stl: the file is empty (0 bytes)
+13:58:30.911 [info] device discovery (simulated): 3 devices
+13:58:32.991 [info] stl 'heatsink_ascii.stl' parsed: 96 triangles, 0 degenerate
+13:58:33.055 [info] nodal csv 'heatsink_nodal_temperatures_synthetic.csv' parsed: 6363 nodes, T 28.282 .. 85 C
+13:58:37.540 [info] thermal job thermal-3 started, N = 10,20,40,80,2000000,2500000,3000000,3500000,4000000,4500000
+13:58:38.202 [info] cancel requested for thermal-3
+13:58:39.946 [info] benchmark job benchmark-4 started: 200 cases x 20000 elements
+13:58:47.967 [info] device discovery (simulated): 3 devices
+13:58:48.733 [info] jtag0 fault: ok - fault injection set to timeout_once
+13:58:49.728 [info] jtag0 connect: already_connected - already connected
+13:58:50.443 [info] jtag0 connect: already_connected - already connected
+13:58:54.797 [warn] POST /api/results/nodal-csv -> 422: broken_example.csv: temperature_C is not finite ('NaN')
+13:58:55.489 [warn] POST /api/geometry/stl -> 422: empty.stl: the file is empty (0 bytes)

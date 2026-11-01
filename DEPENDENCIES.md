@@ -20,12 +20,15 @@ browser's built-in webgl 1 and canvas 2d. nothing is fetched from the internet a
 | cmake | 4.4.4 | bsd-3-clause |
 | ninja | 1.13.2 | apache-2.0 |
 | microsoft edge (headless) | system | used only to render the report pdf and plot pngs |
+| node.js | 24.19.0 | mit; only runs `scripts/capture_walkthrough.mjs` (screenshots for docs), never the app |
 
 exact versions are pinned in [toolchain.lock](toolchain.lock).
 
 ## borrowed numbers, not code
 
-- the viridis colour map stop values (`src/frontend/js/viewer3d.js`, css legend) are sampled from
-  matplotlib's viridis map by van der walt and smith, released cc0 (public domain).
+- the inferno and viridis colour map stop values (`src/frontend/js/viewer3d.js`) are sampled from
+  matplotlib's maps by van der walt and smith, released cc0 (public domain).
+- the cool–warm stops follow kenneth moreland's diverging colour map ("diverging color maps for scientific
+  visualization", 2009), published for free use.
 - the fe formulation (element stiffness kA/h, consistent load qAh/2), the thomas algorithm and the central
   difference formula are standard textbook methods, implemented from scratch here.

@@ -1,22 +1,38 @@
 # screenshot walkthrough with logs
 
-an equivalent of the demo video, captured on 2026-11-01 between 11:59 and 12:06 from the dev build (same code
-as the packaged exe) with headless microsoft edge at 1440 px wide. each `?view=<name>&demo` url presses the
-same controls a person would (see `runDemo` in `src/frontend/js/main.js`). [activity_log.txt](activity_log.txt)
-is the backend log for the whole capture.
+this is the "equivalent timestamped screenshot walkthrough with logs" that the brief accepts in place of the
+demo video. it was captured on 2026-11-01 from the dev build (same code as the packaged `Launch.exe`) by
+[scripts/capture_walkthrough.mjs](../../scripts/capture_walkthrough.mjs). the script opens the real app in
+headless microsoft edge at 1440 × 900 and presses the same controls a person would, **in real time**, so
+the frames show live states: a job mid-progress, a cancel, a benchmark streaming its runs.
 
-> the demo video is still the candidate's to record. a 3–5 minute narrated screen recording of the same
-> steps is the strongest evidence, and it shows the live parts (sliders, streaming charts) that stills cannot.
+[activity_log.txt](activity_log.txt) is the backend log for the same launch. the app ran twice through the
+script on that launch (13:57 and 13:58; the frames below are from the second pass), so most events
+appear twice in the log.
 
-| capture | frame | what it shows |
-|---|---|---|
-| 11:59:30 | [01_overview.png](01_overview.png) | one card per task with a live result from the backend (fea order 2.000, 3 simulated devices, gradient check 4/4) and the requirement checklist mapping every bullet of the brief to a place in the app |
-| 11:59:36 | [02_geometry.png](02_geometry.png) | heat-sink stl (read in mm, converted to m in c++) overlaid at 25 % opacity on its synthetic temperature field (6,363 nodes, inferno map, legend in °C); the hottest node (id 326, 85 °C) is pinned in the inspector |
-| 11:59:44 | [03_thermal.png](03_thermal.png) | brief values: peak 188.2 °C at x = 0.42 m; heat out of the ends 0.42 + 0.58 = 1 W = qAL; error arches along x; midpoint errors 1.25 → 0.01953125 °C equal to qh²/8k; observed order 2.0000 |
-| 12:04:57 | [04_performance.png](04_performance.png) | finished job: 200 cases × 20,000 elements, every measured run plotted, median bars with min–max whiskers, speedup 0.99 / 1.86 / 3.63 at p = 1 / 2 / 4, serial vs parallel max \|ΔT\| = 0 °C. the job was started through the api and reopened with `?view=performance&job=…` because a headless screenshot cannot wait for a live run |
-| 12:06:08 | [05_hardware.png](05_hardware.png) | topology coloured by link state with animated links for streaming devices; jtag0 got an injected timeout (421 ms), recovered on retry and now streams vref / tck / idcode; mcu0 streams with sparklines; fpga0 untouched |
-| 12:05:18 | [06_backprop.png](06_backprop.png) | computation graph at step 1 with forward values and red gradients, gradient check 4/4 (max error 1.1e-10), loss 1.1825 → 0.6858 after the handwritten step, parameter trajectories |
-| 12:05:26 | [07_error_handling.png](07_error_handling.png) | a csv with a nan temperature is rejected: file name, line 3 and a fix-it hint; the results panel shows "rejected" and nothing is loaded |
+to reproduce:
 
-the log also shows benchmark-1, started by a capture attempt that hung on the live chart and was killed; its
-result is not used anywhere.
+```bat
+build\Launch.exe --no-browser --port 8765
+node scripts\capture_walkthrough.mjs http://127.0.0.1:8765 docs\walkthrough
+```
+
+| capture | frame | brief requirement | what it shows |
+|---|---|---|---|
+| 13:58:32 | [01_overview.png](01_overview.png) | a: one coherent interface | one card per task with a live result from the backend; session facts (cpu, cores, compiler, launch-to-ready) |
+| 13:58:32 | [01b_checklist.png](01b_checklist.png) | all | every bullet of the brief mapped to the place in the app. docs evidence (handwritten pages, video) is ticked only if the file is actually in `docs/` |
+| 13:58:34 | [02_geometry.png](02_geometry.png) | b: stl + csv, legend, units, inspection | heat-sink stl (read in mm, converted to m in c++) over its synthetic temperature field, inferno map with a °C legend; the hottest node (id 326, 85 °C) pinned in the inspector |
+| 13:58:36 | [03_thermal.png](03_thermal.png) | c: fea vs exact, convergence | brief values: peak 188.2 °C at x = 0.42 m; heat out of the ends 0.42 + 0.58 = 1 W = qAL; midpoint error at N = 80 equals qh²/8k; observed order 2.000 |
+| 13:58:36 | [04_validation.png](04_validation.png) | a: parameter validation | k = −5 typed: the field is flagged inline ("enter a positive number"); the last valid solution stays on screen |
+| 13:58:38 | [05_job_progress.png](05_job_progress.png) | a: progress, responsive ui | a 19.5-million-node study runs as a background job; progress and cancel in the status bar while the page stays usable |
+| 13:58:39 | [06_job_cancelled.png](06_job_cancelled.png) | a: cancellation without corrupting results | cancelled: the job publishes nothing, so the previous results, plots and csv exports are unchanged |
+| 13:58:43 | [07_benchmark_live.png](07_benchmark_live.png) | d: real parallel work | benchmark running (run 12 of 24): every timed run, warm-ups hollow, streams into the chart as it finishes |
+| 13:58:47 | [08_benchmark_done.png](08_benchmark_done.png) | d: median, speedup, efficiency, agreement | 200 cases × 20,000 elements: median bars with min–max whiskers, speedup vs ideal, efficiency at p = 4, serial vs parallel max \|ΔT\| = 0 °C; machine and flags listed |
+| 13:58:50 | [09_hardware.png](09_hardware.png) | e: three device types, recoverable failure | jtag0 got an injected timeout, faulted, recovered on retry and now streams; mcu0 streams; fpga0 idle; every card labelled simulated, jtag marked "no: debug interface only" |
+| 13:58:53 | [10_backprop.png](10_backprop.png) | f: c++ gradient check, loss | computation graph at step 1 with forward values and gradients; gradient check 4/4; loss after the handwritten step |
+| 13:58:55 | [11_error_nan.png](11_error_nan.png) | b: reject non-finite data | a csv with a nan temperature is rejected: file name, line 3 and a fix-it hint; nothing is loaded |
+| 13:58:58 | [12_error_empty.png](12_error_empty.png) | b: explain empty files | an empty stl gets "the file is empty (0 bytes)" and what to do, instead of a silent failure |
+| 13:59:00 | [13_activity_log.png](13_activity_log.png) | a: status, logs | the activity-log drawer: the backend log streamed from Launch.exe (job start, cancel, timeout, recovery, rejections) |
+
+a narrated 3–5 minute screen recording would show the live parts (sliders re-solving, streaming charts)
+better than stills. if one is added as `docs/demo_video.mp4`, the overview checklist picks it up.
