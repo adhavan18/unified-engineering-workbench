@@ -23,6 +23,9 @@ dlls that ship with windows. the server binds to `127.0.0.1` only, so nothing is
 *if windows smartscreen says "windows protected your pc"* (normal for an unsigned exe from a zip):
 click **more info → run anyway**. no admin rights are needed for that.
 
+the very first launch after extracting took ~0.8 s to become ready on the test machine (antivirus scans the new
+exe once); later launches take 50–70 ms.
+
 ### from vs code (or antigravity)
 
 1. **file → open folder…** and pick the extracted folder (the one containing `Launch.exe`).
