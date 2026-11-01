@@ -1,0 +1,7 @@
+file,bytes,kind,items,parse_ms,result
+stl_120k_tris.stl,15368331,ascii stl,120000,100.1,"ok"
+stl_1200k_tris.stl,156389529,ascii stl,1200000,1070.9,"ok"
+stl_2160k_tris_over_limit.stl,282076145,ascii stl,0,0.2,"rejected: the file is larger than the 256 MB limit"
+csv_100k_nodes.csv,4089061,nodal csv,100000,69.3,"ok"
+csv_1m_nodes.csv,41890999,nodal csv,1000000,1574.6,"ok"
+csv_4m_nodes.csv,170897954,nodal csv,4000000,6587.5,"ok"

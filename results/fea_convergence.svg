@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="520" viewBox="0 0 820 520" font-family="Segoe UI, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="86" y="30" font-size="17" font-weight="600" fill="#111827">mesh convergence of the max midpoint error</text>
+<text x="86" y="50" font-size="12" fill="#4b5563">slope 2 on log-log axes = second-order convergence; nodal error is at round-off (1d superconvergence)</text>
+<line x1="86" x2="86" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="86" y="474" font-size="12" text-anchor="middle" fill="#374151">0.01</text>
+<line x1="630" x2="630" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="630" y="474" font-size="12" text-anchor="middle" fill="#374151">0.1</text>
+<line x1="86" x2="630" y1="456" y2="456" stroke="#e5e7eb"/>
+<text x="78" y="460" font-size="12" text-anchor="end" fill="#374151">1e-14</text>
+<line x1="86" x2="630" y1="430.533" y2="430.533" stroke="#e5e7eb"/>
+<text x="78" y="434.533" font-size="12" text-anchor="end" fill="#374151">1e-13</text>
+<line x1="86" x2="630" y1="405.067" y2="405.067" stroke="#e5e7eb"/>
+<text x="78" y="409.067" font-size="12" text-anchor="end" fill="#374151">1e-12</text>
+<line x1="86" x2="630" y1="379.6" y2="379.6" stroke="#e5e7eb"/>
+<text x="78" y="383.6" font-size="12" text-anchor="end" fill="#374151">1e-11</text>
+<line x1="86" x2="630" y1="354.133" y2="354.133" stroke="#e5e7eb"/>
+<text x="78" y="358.133" font-size="12" text-anchor="end" fill="#374151">1e-10</text>
+<line x1="86" x2="630" y1="328.667" y2="328.667" stroke="#e5e7eb"/>
+<text x="78" y="332.667" font-size="12" text-anchor="end" fill="#374151">1e-09</text>
+<line x1="86" x2="630" y1="303.2" y2="303.2" stroke="#e5e7eb"/>
+<text x="78" y="307.2" font-size="12" text-anchor="end" fill="#374151">1e-08</text>
+<line x1="86" x2="630" y1="277.733" y2="277.733" stroke="#e5e7eb"/>
+<text x="78" y="281.733" font-size="12" text-anchor="end" fill="#374151">1e-07</text>
+<line x1="86" x2="630" y1="252.267" y2="252.267" stroke="#e5e7eb"/>
+<text x="78" y="256.267" font-size="12" text-anchor="end" fill="#374151">1e-06</text>
+<line x1="86" x2="630" y1="226.8" y2="226.8" stroke="#e5e7eb"/>
+<text x="78" y="230.8" font-size="12" text-anchor="end" fill="#374151">1e-05</text>
+<line x1="86" x2="630" y1="201.333" y2="201.333" stroke="#e5e7eb"/>
+<text x="78" y="205.333" font-size="12" text-anchor="end" fill="#374151">1e-04</text>
+<line x1="86" x2="630" y1="175.867" y2="175.867" stroke="#e5e7eb"/>
+<text x="78" y="179.867" font-size="12" text-anchor="end" fill="#374151">0.001</text>
+<line x1="86" x2="630" y1="150.4" y2="150.4" stroke="#e5e7eb"/>
+<text x="78" y="154.4" font-size="12" text-anchor="end" fill="#374151">0.01</text>
+<line x1="86" x2="630" y1="124.933" y2="124.933" stroke="#e5e7eb"/>
+<text x="78" y="128.933" font-size="12" text-anchor="end" fill="#374151">0.1</text>
+<line x1="86" x2="630" y1="99.4667" y2="99.4667" stroke="#e5e7eb"/>
+<text x="78" y="103.467" font-size="12" text-anchor="end" fill="#374151">1</text>
+<line x1="86" x2="630" y1="74" y2="74" stroke="#e5e7eb"/>
+<text x="78" y="78" font-size="12" text-anchor="end" fill="#374151">10</text>
+<rect x="86" y="74" width="544" height="382" fill="none" stroke="#9ca3af"/>
+<text x="358" y="502" font-size="13" text-anchor="middle" fill="#111827">element size h (m)</text>
+<text transform="translate(22,265) rotate(-90)" font-size="13" text-anchor="middle" fill="#111827">max |T_fe - T_exact| (C)</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="2" points="630,96.9987 466.24,112.331 302.479,127.664 138.719,142.996 "/>
+<circle cx="630" cy="96.9987" r="3.5" fill="#dc2626"/>
+<circle cx="466.24" cy="112.331" r="3.5" fill="#dc2626"/>
+<circle cx="302.479" cy="127.664" r="3.5" fill="#dc2626"/>
+<circle cx="138.719" cy="142.996" r="3.5" fill="#dc2626"/>
+<polyline fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4" points="630,96.9987 466.24,112.331 302.479,127.664 138.719,142.996 "/>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="630,436.781 466.24,420.146 302.479,407.995 138.719,403.648 "/>
+<circle cx="630" cy="436.781" r="3.5" fill="#2563eb"/>
+<circle cx="466.24" cy="420.146" r="3.5" fill="#2563eb"/>
+<circle cx="302.479" cy="407.995" r="3.5" fill="#2563eb"/>
+<circle cx="138.719" cy="403.648" r="3.5" fill="#2563eb"/>
+<line x1="646" x2="670" y1="86" y2="86" stroke="#dc2626" stroke-width="2"/>
+<circle cx="658" cy="86" r="3.5" fill="#dc2626"/>
+<text x="676" y="90" font-size="12" fill="#111827">midpoint error (fe interp.)</text>
+<line x1="646" x2="670" y1="106" y2="106" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="676" y="110" font-size="12" fill="#111827">theory q h^2 / (8 k)</text>
+<line x1="646" x2="670" y1="126" y2="126" stroke="#2563eb" stroke-width="2"/>
+<circle cx="658" cy="126" r="3.5" fill="#2563eb"/>
+<text x="676" y="130" font-size="12" fill="#111827">nodal error</text>
+</svg>

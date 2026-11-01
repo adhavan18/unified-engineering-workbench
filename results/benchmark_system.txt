@@ -1,0 +1,13 @@
+cpu: 12th Gen Intel(R) Core(TM) i5-1240P
+physical_cores: 12
+logical_cpus: 16
+ram_gib: 15.7
+os: windows
+compiler: gcc 16.2.0
+build_type: Release
+build_flags:  -O3 -DNDEBUG -std=c++17
+workload: 400 independent rod solves x 20000 linear elements each, seed 20261101, k in [1, 400] W/(m K), q in [1e3, 1e5] W/m^3
+warmups: 1 (first warm-up output kept for the agreement check)
+repetitions: 5 measured, median reported
+timed region: run_serial / run_parallel only (case generation, thread start-up, file io excluded)
+agreement: max |T_serial - T_parallel| <= 1e-08 C -> pass

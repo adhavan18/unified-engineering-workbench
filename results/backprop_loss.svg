@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="520" viewBox="0 0 820 520" font-family="Segoe UI, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="86" y="30" font-size="17" font-weight="600" fill="#111827">training loss, x = 1, y = 2, learning rate 0.1</text>
+<text x="86" y="50" font-size="12" fill="#4b5563">J(0) = 1.182542, J(1) = 0.685774, J(101) = 1.080e-20</text>
+<line x1="86" x2="86" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="86" y="474" font-size="12" text-anchor="middle" fill="#374151">0</text>
+<line x1="193.723" x2="193.723" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="193.723" y="474" font-size="12" text-anchor="middle" fill="#374151">20</text>
+<line x1="301.446" x2="301.446" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="301.446" y="474" font-size="12" text-anchor="middle" fill="#374151">40</text>
+<line x1="409.168" x2="409.168" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="409.168" y="474" font-size="12" text-anchor="middle" fill="#374151">60</text>
+<line x1="516.891" x2="516.891" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="516.891" y="474" font-size="12" text-anchor="middle" fill="#374151">80</text>
+<line x1="624.614" x2="624.614" y1="74" y2="456" stroke="#e5e7eb"/>
+<text x="624.614" y="474" font-size="12" text-anchor="middle" fill="#374151">100</text>
+<line x1="86" x2="630" y1="456" y2="456" stroke="#e5e7eb"/>
+<text x="78" y="460" font-size="12" text-anchor="end" fill="#374151">1e-20</text>
+<line x1="86" x2="630" y1="437.81" y2="437.81" stroke="#e5e7eb"/>
+<text x="78" y="441.81" font-size="12" text-anchor="end" fill="#374151">1e-19</text>
+<line x1="86" x2="630" y1="419.619" y2="419.619" stroke="#e5e7eb"/>
+<text x="78" y="423.619" font-size="12" text-anchor="end" fill="#374151">1e-18</text>
+<line x1="86" x2="630" y1="401.429" y2="401.429" stroke="#e5e7eb"/>
+<text x="78" y="405.429" font-size="12" text-anchor="end" fill="#374151">1e-17</text>
+<line x1="86" x2="630" y1="383.238" y2="383.238" stroke="#e5e7eb"/>
+<text x="78" y="387.238" font-size="12" text-anchor="end" fill="#374151">1e-16</text>
+<line x1="86" x2="630" y1="365.048" y2="365.048" stroke="#e5e7eb"/>
+<text x="78" y="369.048" font-size="12" text-anchor="end" fill="#374151">1e-15</text>
+<line x1="86" x2="630" y1="346.857" y2="346.857" stroke="#e5e7eb"/>
+<text x="78" y="350.857" font-size="12" text-anchor="end" fill="#374151">1e-14</text>
+<line x1="86" x2="630" y1="328.667" y2="328.667" stroke="#e5e7eb"/>
+<text x="78" y="332.667" font-size="12" text-anchor="end" fill="#374151">1e-13</text>
+<line x1="86" x2="630" y1="310.476" y2="310.476" stroke="#e5e7eb"/>
+<text x="78" y="314.476" font-size="12" text-anchor="end" fill="#374151">1e-12</text>
+<line x1="86" x2="630" y1="292.286" y2="292.286" stroke="#e5e7eb"/>
+<text x="78" y="296.286" font-size="12" text-anchor="end" fill="#374151">1e-11</text>
+<line x1="86" x2="630" y1="274.095" y2="274.095" stroke="#e5e7eb"/>
+<text x="78" y="278.095" font-size="12" text-anchor="end" fill="#374151">1e-10</text>
+<line x1="86" x2="630" y1="255.905" y2="255.905" stroke="#e5e7eb"/>
+<text x="78" y="259.905" font-size="12" text-anchor="end" fill="#374151">1e-09</text>
+<line x1="86" x2="630" y1="237.714" y2="237.714" stroke="#e5e7eb"/>
+<text x="78" y="241.714" font-size="12" text-anchor="end" fill="#374151">1e-08</text>
+<line x1="86" x2="630" y1="219.524" y2="219.524" stroke="#e5e7eb"/>
+<text x="78" y="223.524" font-size="12" text-anchor="end" fill="#374151">1e-07</text>
+<line x1="86" x2="630" y1="201.333" y2="201.333" stroke="#e5e7eb"/>
+<text x="78" y="205.333" font-size="12" text-anchor="end" fill="#374151">1e-06</text>
+<line x1="86" x2="630" y1="183.143" y2="183.143" stroke="#e5e7eb"/>
+<text x="78" y="187.143" font-size="12" text-anchor="end" fill="#374151">1e-05</text>
+<line x1="86" x2="630" y1="164.952" y2="164.952" stroke="#e5e7eb"/>
+<text x="78" y="168.952" font-size="12" text-anchor="end" fill="#374151">1e-04</text>
+<line x1="86" x2="630" y1="146.762" y2="146.762" stroke="#e5e7eb"/>
+<text x="78" y="150.762" font-size="12" text-anchor="end" fill="#374151">0.001</text>
+<line x1="86" x2="630" y1="128.571" y2="128.571" stroke="#e5e7eb"/>
+<text x="78" y="132.571" font-size="12" text-anchor="end" fill="#374151">0.01</text>
+<line x1="86" x2="630" y1="110.381" y2="110.381" stroke="#e5e7eb"/>
+<text x="78" y="114.381" font-size="12" text-anchor="end" fill="#374151">0.1</text>
+<line x1="86" x2="630" y1="92.1905" y2="92.1905" stroke="#e5e7eb"/>
+<text x="78" y="96.1905" font-size="12" text-anchor="end" fill="#374151">1</text>
+<line x1="86" x2="630" y1="74" y2="74" stroke="#e5e7eb"/>
+<text x="78" y="78" font-size="12" text-anchor="end" fill="#374151">10</text>
+<rect x="86" y="74" width="544" height="382" fill="none" stroke="#9ca3af"/>
+<text x="358" y="502" font-size="13" text-anchor="middle" fill="#111827">gradient-descent step (step 1 = the handwritten update)</text>
+<text transform="translate(22,265) rotate(-90)" font-size="13" text-anchor="middle" fill="#111827">loss J = 0.5 (y_hat - y)^2</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="86,90.8659 91.3861,95.1704 96.7723,99.1065 102.158,102.892 107.545,106.605 112.931,110.277 118.317,113.926 123.703,117.559 129.089,121.182 134.475,124.797 139.861,128.406 145.248,132.012 150.634,135.615 156.02,139.216 161.406,142.814 166.792,146.412 172.178,150.008 177.564,153.604 182.95,157.199 188.337,160.793 193.723,164.387 199.109,167.981 204.495,171.575 209.881,175.168 215.267,178.761 220.653,182.354 226.04,185.947 231.426,189.54 236.812,193.133 242.198,196.725 247.584,200.318 252.97,203.911 258.356,207.503 263.743,211.096 269.129,214.689 274.515,218.281 279.901,221.874 285.287,225.466 290.673,229.059 296.059,232.651 301.446,236.244 306.832,239.836 312.218,243.429 317.604,247.022 322.99,250.614 328.376,254.207 333.762,257.799 339.149,261.392 344.535,264.984 349.921,268.577 355.307,272.169 360.693,275.762 366.079,279.354 371.465,282.947 376.851,286.539 382.238,290.132 387.624,293.724 393.01,297.317 398.396,300.91 403.782,304.502 409.168,308.095 414.554,311.687 419.941,315.28 425.327,318.872 430.713,322.465 436.099,326.057 441.485,329.65 446.871,333.242 452.257,336.835 457.644,340.427 463.03,344.02 468.416,347.612 473.802,351.205 479.188,354.798 484.574,358.39 489.96,361.983 495.347,365.575 500.733,369.168 506.119,372.76 511.505,376.353 516.891,379.945 522.277,383.538 527.663,387.13 533.05,390.723 538.436,394.315 543.822,397.908 549.208,401.5 554.594,405.093 559.98,408.685 565.366,412.278 570.752,415.871 576.139,419.463 581.525,423.056 586.911,426.648 592.297,430.241 597.683,433.833 603.069,437.426 608.455,441.018 613.842,444.611 619.228,448.203 624.614,451.796 630,455.388 "/>
+<line x1="646" x2="670" y1="86" y2="86" stroke="#2563eb" stroke-width="2"/>
+<text x="676" y="90" font-size="12" fill="#111827">loss J</text>
+</svg>
