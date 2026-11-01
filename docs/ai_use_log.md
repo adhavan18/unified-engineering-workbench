@@ -94,6 +94,11 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
 14. **screenshot tooling, not the app:** headless edge never finished a capture of the live benchmark chart
    (constant polling keeps its virtual clock from settling). the finished job is shown instead, reopened by id.
 
+15. **a zip that only windows could read properly.** `Compress-Archive` (windows powershell 5.1) stored paths
+   with `\`; `unzip` extracted flat files named `CandidateID_Workbench\src\...`. found by unzipping the package
+   in a clean folder; the script now uses windows' bundled `tar`, and both `unzip` and Expand-Archive were
+   re-checked.
+
 ## challenge test
 
 `tests/test_backprop.cpp :: gradient_check_catches_a_wrong_derivative` deliberately uses the common slip
