@@ -1,0 +1,14 @@
+# exact tool versions used to build and test the submitted Launch.exe.
+# there are no third-party c++ or javascript libraries to lock.
+
+compiler      = gcc 16.2.0 (MinGW-W64 x86_64-ucrt-posix-seh, WinLibs build by Brecht Sanders, r3)
+winget_id     = BrechtSanders.WinLibs.POSIX.UCRT
+cmake         = 4.4.4   (bundled with the WinLibs package)
+ninja         = 1.13.2  (bundled with the WinLibs package)
+c++ standard  = c++17 (CMAKE_CXX_STANDARD 17, extensions off)
+build type    = Release (-O3 -DNDEBUG), warnings -Wall -Wextra -Wpedantic
+link          = -static -static-libgcc -static-libstdc++
+runtime dlls  = windows system only: kernel32, user32, advapi32, shell32, ws2_32, ucrt (api-ms-win-crt-*)
+target        = windows 11 x64
+tested on     = windows 11 home 10.0.26200, intel core i5-1240P, 15.7 GiB ram
+browsers      = microsoft edge (chromium) via the default-browser handler

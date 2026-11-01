@@ -1,0 +1,20 @@
+{
+  // alternative to launch.json: terminal > run task > "run workbench".
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "run workbench",
+      "type": "process",
+      "command": "${workspaceFolder}\\Launch.exe",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "build + test (needs cmake and a c++17 compiler on PATH)",
+      "type": "shell",
+      "command": "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release; cmake --build build; ctest --test-dir build --output-on-failure",
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

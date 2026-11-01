@@ -1,0 +1,22 @@
+{
+  // "node-terminal" comes with vs code's built-in javascript debugger, so no
+  // extension has to be installed. it just runs the command in a terminal.
+  // pick a configuration in run and debug, then press f5.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "run workbench (packaged Launch.exe)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\Launch.exe",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "run workbench (dev build in build/)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\build\\Launch.exe",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
