@@ -55,7 +55,9 @@ TEST(study, csv_exports_have_one_row_per_node_and_element) {
 
 TEST(study, limits_and_bad_input_are_reported) {
     CHECK(validate_study(RodProblem{}, {}, 100).find("at least one") != std::string::npos);
-    CHECK(validate_study(RodProblem{}, {1000, 1000}, 1500).find("2002 nodes") != std::string::npos);
+    CHECK(validate_study(RodProblem{}, {1000, 1000}, 1500).find("2,002 nodes in total; the limit here is 1,500") !=
+          std::string::npos);
+    CHECK(validate_study(RodProblem{}, {999999}, 100).find("1,000,000 nodes") != std::string::npos);
     RodProblem bad;
     bad.conductivity_W_mK = -1;
     CHECK(validate_study(bad, {10}, 100).find("conductivity") != std::string::npos);

@@ -18,6 +18,13 @@ std::string fmt(double v) {
     return buf;
 }
 
+// 19500160 -> "19,500,160", so limits in error messages are readable
+std::string grouped(long long n) {
+    std::string s = std::to_string(n);
+    for (int i = static_cast<int>(s.size()) - 3; i > 0; i -= 3) s.insert(static_cast<std::size_t>(i), ",");
+    return s;
+}
+
 }  // namespace
 
 void exact_peak(const RodProblem& p, double& x_m, double& T_C) {
@@ -43,8 +50,7 @@ std::string validate_study(const RodProblem& rod, const std::vector<int>& meshes
         total += n + 1;
     }
     if (total > max_total_nodes) {
-        return "these meshes have " + std::to_string(total) + " nodes in total; the limit here is " +
-               std::to_string(max_total_nodes);
+        return "these meshes have " + grouped(total) + " nodes in total; the limit here is " + grouped(max_total_nodes);
     }
     return {};
 }

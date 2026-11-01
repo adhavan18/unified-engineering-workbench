@@ -12,6 +12,7 @@ import { LinePlot, PALETTE } from '../plot.js';
 const $ = (s) => document.querySelector(s);
 const BRIEF = { k: '10', q: '10000', T0: '100', TL: '20', L: '1', A: '1e-4', meshes: '10,20,40,80' };
 const MESH_CHOICES = [5, 10, 20, 40, 80, 160, 320];
+const LIVE_NODE_LIMIT = 200000;  // same as kLiveNodeLimit in src/server/api.cpp, which still enforces it
 
 export const plots = {};
 let tempPlot, errPlot, convPlot;
@@ -56,6 +57,12 @@ function syncChips() {
 export async function solveLive() {
   const values = validateForm($('#fea-form'));
   if (!values) { setStatus('fix the highlighted input to update the solution'); return; }
+  const nodes = values.meshes.split(',').reduce((s, n) => s + (+n + 1), 0);
+  if (nodes > LIVE_NODE_LIMIT) {
+    ++inflight;  // drop any reply still in flight for the previous inputs
+    setStatus(`${nodes.toLocaleString()} nodes is too fine for live updates (limit ${LIVE_NODE_LIMIT.toLocaleString()}): press "run as job" for progress and cancel`);
+    return;
+  }
   const ticket = ++inflight;
   const t0 = performance.now();
   try {
