@@ -62,7 +62,7 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
    `tools/experiments/thread_probe.cpp` showed a fresh thread runs as fast as the main thread.
    `order_probe.cpp`, alternating serial and pool(1), gave a ratio of ~1.0, and both slowed from ~0.40 s to
    ~0.60 s after a few seconds: the laptop's turbo budget runs out, so later blocks look slower. fix:
-   interleave configurations inside each repetition (commit `b603749`).
+   interleave configurations inside each repetition (commit `91ef90f`).
 2. **a test with a guessed expectation.** the stl example test asserted "more than 100 triangles"; the heat
    sink has 8 boxes × 12 = 96. the test was wrong, not the parser; it now asserts exactly 96.
 3. **an off-by-one in the csv reader.** a trailing newline was counted as an extra blank line
