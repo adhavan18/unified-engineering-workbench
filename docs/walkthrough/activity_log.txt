@@ -1,0 +1,21 @@
+10:50:01.754 [info] unified engineering workbench 1.0.0 listening on http://127.0.0.1:8767/
+10:50:01.754 [info] launch-to-ready (process start -> listening): 44.818604 ms
+10:50:01.755 [info] frontend: ../src/frontend   [path made relative when saving this log; the app now logs it relative too]
+10:50:01.755 [info] close this window or press quit in the ui to stop
+10:50:06.629 [info] stl 'heatsink_ascii.stl' parsed: 96 triangles, 0 degenerate
+10:50:07.214 [info] nodal csv 'rod_nodal_temperatures_synthetic.csv' parsed: 2025 nodes, T 20 .. 188.1875 C
+10:50:37.920 [info] stl 'heatsink_ascii.stl' parsed: 96 triangles, 0 degenerate
+10:50:37.986 [info] nodal csv 'rod_nodal_temperatures_synthetic.csv' parsed: 2025 nodes, T 20 .. 188.1875 C
+10:50:43.856 [info] thermal job thermal-1 started, N = 10,20,40,80
+10:50:50.334 [info] benchmark job benchmark-2 started: 200 cases x 20000 elements
+10:51:03.117 [info] device discovery (simulated): 3 devices
+10:51:03.203 [info] jtag0 fault: ok - fault injection set to timeout_once
+10:51:03.625 [warn] jtag0 connect: timeout - no handshake reply within 400 ms (simulated timeout). retry connect to recover
+10:51:04.059 [info] jtag0 connect: ok - connected (simulated link)
+10:51:04.104 [info] jtag0 telemetry: ok - telemetry frame received (simulated)
+10:51:04.117 [info] mcu0 connect: ok - connected (simulated link)
+10:51:04.259 [info] mcu0 telemetry: ok - telemetry frame received (simulated)
+10:51:15.651 [warn] POST /api/results/nodal-csv -> 422: broken_example.csv: temperature_C is not finite ('NaN')
+10:51:36.728 [info] benchmark job benchmark-3 started: 200 cases x 20000 elements
+10:52:01.451 [info] benchmark job benchmark-4 started: 200 cases x 20000 elements
+10:52:35.512 [warn] POST /api/results/nodal-csv -> 422: broken_example.csv: temperature_C is not finite ('NaN')
