@@ -36,4 +36,13 @@ Params sgd_step(const Params& p, const Gradients& g, double learning_rate);
 // loss before any update followed by the loss after each of `steps` updates.
 std::vector<double> train_losses(Params p, double x, double y, double learning_rate, int steps);
 
+// full state at every step 0..steps: parameters, forward values and the
+// gradients that the next update will use.
+struct Step {
+    Params params;
+    Forward forward;
+    Gradients grads;
+};
+std::vector<Step> train_trajectory(Params p, double x, double y, double learning_rate, int steps);
+
 }  // namespace wb::nn

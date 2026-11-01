@@ -29,6 +29,7 @@ set(WB_FLAGS_STRING "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${WB_BT}} -std=c++17")
 # ---- core: engineering logic, no transport or ui code ----------------------
 add_library(wb_core STATIC
   src/core/fea1d.cpp
+  src/core/thermal_study.cpp
   src/core/batch.cpp
   src/core/worker_pool.cpp
   src/core/stl.cpp
@@ -69,6 +70,7 @@ enable_testing()
 add_executable(wb_tests
   tests/test_main.cpp
   tests/test_fea.cpp
+  tests/test_thermal_study.cpp
   tests/test_batch.cpp
   tests/test_stl.cpp
   tests/test_csv.cpp

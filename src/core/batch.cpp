@@ -115,7 +115,8 @@ std::string validate(const BenchConfig& cfg) {
 }
 
 BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
-                          const std::atomic<bool>* cancel, const Progress& progress) {
+                          const std::atomic<bool>* cancel, const Progress& progress,
+                          const RunCallback& on_run) {
     if (auto why = validate(cfg); !why.empty()) throw std::invalid_argument(why);
 
     BenchReport report;
@@ -153,7 +154,7 @@ BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
     using clock = std::chrono::steady_clock;
     BatchOutput reference;
     // runs one configuration once; returns false if cancelled
-    auto run_once = [&](std::size_t k, bool measured, bool first) {
+    auto run_once = [&](std::size_t k, int round, bool measured, bool first) {
         const auto t0 = clock::now();
         BatchOutput out = k == 0 ? run_serial(cases, elements, cancel)
                                  : run_parallel(cases, elements, *pools[k - 1], cancel);
@@ -163,6 +164,7 @@ BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
         // the first run of each config is kept for the agreement check
         if (first && k == 0) reference = std::move(out);
         else if (first) report.rows[k].max_abs_diff_C = max_abs_difference(reference, out);
+        if (on_run) on_run(k, report.rows[k].workers, round, measured, t);
         if (progress) progress(++runs_done, total_runs);
         return true;
     };
@@ -174,7 +176,7 @@ BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
     const int rounds = cfg.warmups + cfg.repetitions;
     for (int r = 0; r < rounds; ++r) {
         for (std::size_t k = 0; k < configs; ++k) {
-            if (!run_once(k, r >= cfg.warmups, r == 0)) {
+            if (!run_once(k, r, r >= cfg.warmups, r == 0)) {
                 report.cancelled = true;
                 return report;
             }

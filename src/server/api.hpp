@@ -36,8 +36,10 @@ private:
     http::Response status();
     http::Response parse_stl(const http::Request& req);
     http::Response parse_csv(const http::Request& req);
-    http::Response example(const std::string& which);
+    http::Response example(const http::Request& req, const std::string& kind);
     http::Response start_thermal(const http::Request& req);
+    http::Response thermal_live(const http::Request& req);
+    http::Response thermal_export(const http::Request& req);
     http::Response start_benchmark(const http::Request& req);
     http::Response job_status(const std::string& id);
     http::Response job_cancel(const std::string& id);

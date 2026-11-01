@@ -79,6 +79,41 @@ void write_rod_csv(const std::string& path) {
     }
 }
 
+// synthetic nodal temperatures on the heat-sink geometry above, in metres, so the
+// point cloud lines up with the stl when the stl is read in millimetres.
+// model (made up for illustration, not a simulation): a hot spot under the base
+// centre spreads as a gaussian through the base, and each fin cools along its
+// height like a classic straight fin, theta(s) = cosh(m (H - s)) / cosh(m H).
+void write_heatsink_csv(const std::string& path) {
+    const double t_amb = 25.0, rise = 60.0, spread_mm = 18.0;
+    const double fin_h_mm = 25.0, m_fin = 60.0;  // 1/m, so m*H = 1.5
+    auto base_temp = [&](double x_mm, double y_mm, double z_mm) {
+        const double r2 = (x_mm - 30.0) * (x_mm - 30.0) + (y_mm - 20.0) * (y_mm - 20.0);
+        return t_amb + rise * std::exp(-r2 / (2 * spread_mm * spread_mm)) * (1.0 - 0.04 * z_mm);
+    };
+    std::ofstream out(path, std::ios::binary);
+    out << "node_id,x_m,y_m,z_m,temperature_C\n";
+    int id = 1;
+    auto node = [&](double x_mm, double y_mm, double z_mm, double t) {
+        char buf[160];
+        std::snprintf(buf, sizeof buf, "%d,%.4f,%.4f,%.4f,%.3f\n", id++, x_mm / 1000, y_mm / 1000, z_mm / 1000, t);
+        out << buf;
+    };
+    for (double z = 0; z <= 5.0 + 1e-9; z += 2.5)
+        for (double y = 0; y <= 40.0 + 1e-9; y += 2.0)
+            for (double x = 0; x <= 60.0 + 1e-9; x += 2.0) node(x, y, z, base_temp(x, y, z));
+    for (int f = 0; f < 7; ++f) {
+        const double x0 = 2.0 + f * 9.0;
+        for (double s = 2.5; s <= fin_h_mm + 1e-9; s += 2.5)
+            for (double y = 0; y <= 40.0 + 1e-9; y += 2.0)
+                for (double x = x0; x <= x0 + 2.0 + 1e-9; x += 1.0) {
+                    const double root = base_temp(x, y, 5.0);
+                    const double theta = std::cosh(m_fin * (fin_h_mm - s) / 1000) / std::cosh(m_fin * fin_h_mm / 1000);
+                    node(x, y, 5.0 + s, t_amb + (root - t_amb) * theta);
+                }
+    }
+}
+
 void write_big_stl(const std::string& path, long boxes) {
     std::ofstream out(path, std::ios::binary);
     out << "solid size_test\n";
@@ -118,7 +153,8 @@ int main(int argc, char** argv) {
         const std::string dir = argv[2];
         write_heatsink(dir + "/heatsink_ascii.stl");
         write_rod_csv(dir + "/rod_nodal_temperatures_synthetic.csv");
-        std::printf("wrote %s/heatsink_ascii.stl and rod_nodal_temperatures_synthetic.csv\n", dir.c_str());
+        write_heatsink_csv(dir + "/heatsink_nodal_temperatures_synthetic.csv");
+        std::printf("wrote heatsink_ascii.stl, rod_ and heatsink_nodal_temperatures_synthetic.csv in %s\n", dir.c_str());
         return 0;
     }
     if (argc < 4) return usage();

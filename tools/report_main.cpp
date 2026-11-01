@@ -21,6 +21,7 @@
 #include "core/nodal_csv.hpp"
 #include "core/stl.hpp"
 #include "core/sysinfo.hpp"
+#include "core/thermal_study.hpp"
 #include "report/svg_plot.hpp"
 
 using namespace wb;
@@ -44,7 +45,6 @@ const char* kColors[] = {"#dc2626", "#ea580c", "#16a34a", "#2563eb", "#7c3aed", 
 void run_fea(const std::string& dir) {
     std::printf("fea convergence study\n");
     const fea::RodProblem rod;
-    const int meshes[] = {10, 20, 40, 80};
 
     report::Chart temp;
     temp.title = "1d rod: fe temperature vs exact (L = 1 m, k = 10 W/(m K), q = 1e4 W/m^3)";
@@ -66,49 +66,28 @@ void run_fea(const std::string& dir) {
     report::Series theory{"theory q h^2 / (8 k)", {}, {}, "#6b7280", true};
     report::Series nodal{"nodal error", {}, {}, "#2563eb", false, true};
 
-    std::ostringstream sol, mids, conv;
-    sol << "elements,node,x_m,T_fe_C,T_exact_C,abs_error_C\n";
-    mids << "elements,element,x_mid_m,T_fe_C,T_exact_C,abs_error_C\n";
-    conv << "elements,h_m,max_nodal_error_C,max_midpoint_error_C,theory_midpoint_error_C,observed_order\n";
-
-    fea::ErrorReport prev{};
-    for (int m = 0; m < 4; ++m) {
-        const int n = meshes[m];
-        const auto s = fea::solve(rod, n);
-        const auto r = fea::measure_error(rod, s);
-        const double th = rod.heat_gen_W_m3 * r.h_m * r.h_m / (8 * rod.conductivity_W_mK);
-        report::Series ser{"fe N = " + std::to_string(n), s.x_m, s.temp_C, kColors[m], false, n <= 20};
-        temp.series.push_back(ser);
-        for (std::size_t i = 0; i < s.x_m.size(); ++i) {
-            const double te = fea::exact_temperature(rod, s.x_m[i]);
-            sol << n << ',' << i << ',' << fmt(s.x_m[i]) << ',' << fmt(s.temp_C[i]) << ',' << fmt(te) << ','
-                << fmt(std::abs(s.temp_C[i] - te)) << '\n';
-        }
-        for (std::size_t e = 0; e + 1 < s.x_m.size(); ++e) {
-            const double xm = 0.5 * (s.x_m[e] + s.x_m[e + 1]);
-            const double tf = 0.5 * (s.temp_C[e] + s.temp_C[e + 1]);
-            const double te = fea::exact_temperature(rod, xm);
-            mids << n << ',' << e << ',' << fmt(xm) << ',' << fmt(tf) << ',' << fmt(te) << ',' << fmt(std::abs(tf - te)) << '\n';
-        }
-        conv << n << ',' << fmt(r.h_m) << ',' << fmt(r.max_nodal_error_C) << ',' << fmt(r.max_midpoint_error_C) << ','
-             << fmt(th) << ',' << (m ? fmt(fea::observed_order(prev, r), "%.6f") : "") << '\n';
-        mid.x.push_back(r.h_m);
-        mid.y.push_back(r.max_midpoint_error_C);
-        theory.x.push_back(r.h_m);
-        theory.y.push_back(th);
-        nodal.x.push_back(r.h_m);
-        nodal.y.push_back(std::max(r.max_nodal_error_C, 1e-16));
-        std::printf("  N=%-3d h=%.4f  max midpoint err=%.10f C  max nodal err=%.3e C  order=%s\n", n, r.h_m,
-                    r.max_midpoint_error_C, r.max_nodal_error_C, m ? fmt(fea::observed_order(prev, r), "%.4f").c_str() : "-");
-        prev = r;
+    // same study code as the app's thermal view, so results/ and the ui cannot disagree
+    const fea::Study st = fea::run_study(rod, {10, 20, 40, 80}, true);
+    for (std::size_t m = 0; m < st.meshes.size(); ++m) {
+        const auto& r = st.meshes[m];
+        const int n = r.elements;
+        temp.series.push_back({"fe N = " + std::to_string(n), r.solution.x_m, r.solution.temp_C, kColors[m], false, n <= 20});
+        mid.x.push_back(r.error.h_m);
+        mid.y.push_back(r.error.max_midpoint_error_C);
+        theory.x.push_back(r.error.h_m);
+        theory.y.push_back(r.theory_midpoint_error_C);
+        nodal.x.push_back(r.error.h_m);
+        nodal.y.push_back(std::max(r.error.max_nodal_error_C, 1e-16));
+        std::printf("  N=%-3d h=%.4f  max midpoint err=%.10f C  max nodal err=%.3e C  order=%s\n", n, r.error.h_m,
+                    r.error.max_midpoint_error_C, r.error.max_nodal_error_C, m ? fmt(r.observed_order, "%.4f").c_str() : "-");
     }
     temp.series.push_back(exact);
     err.series = {mid, theory, nodal};
     err.notes = {"slope 2 on log-log axes = second-order convergence; nodal error is at round-off (1d superconvergence)"};
 
-    save(dir + "/fea_solution_nodes.csv", sol.str());
-    save(dir + "/fea_midpoints.csv", mids.str());
-    save(dir + "/fea_convergence.csv", conv.str());
+    save(dir + "/fea_solution_nodes.csv", fea::nodes_csv(st));
+    save(dir + "/fea_midpoints.csv", fea::midpoints_csv(st));
+    save(dir + "/fea_convergence.csv", fea::convergence_csv(st));
     report::write_svg(temp, dir + "/fea_temperature.svg");
     report::write_svg(err, dir + "/fea_convergence.svg");
     std::printf("  wrote fea_temperature.svg, fea_convergence.svg\n");

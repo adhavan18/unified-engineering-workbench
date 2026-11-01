@@ -101,6 +101,25 @@ TEST(batch, benchmark_reports_agreement_and_caps_workers) {
     }
 }
 
+TEST(batch, run_callback_reports_every_run_in_interleaved_order) {
+    BenchConfig cfg;
+    cfg.batch.cases = 6;
+    cfg.batch.elements = 50;
+    cfg.workers = {1, 2};
+    cfg.warmups = 1;
+    cfg.repetitions = 2;
+    std::vector<std::size_t> rows;
+    int measured = 0;
+    run_benchmark(cfg, 4, nullptr, {}, [&](std::size_t row, int, int, bool m, double t) {
+        rows.push_back(row);
+        measured += m ? 1 : 0;
+        CHECK(t >= 0.0);
+    });
+    CHECK(rows.size() == 9);  // 3 configs x (1 warm-up + 2 reps)
+    CHECK(measured == 6);
+    CHECK(rows[0] == 0 && rows[1] == 1 && rows[2] == 2 && rows[3] == 0);  // round-robin, not blocks
+}
+
 TEST(batch, single_cpu_machine_still_runs_the_parallel_path) {
     BenchConfig cfg;
     cfg.batch.cases = 4;

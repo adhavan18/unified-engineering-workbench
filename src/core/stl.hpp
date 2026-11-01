@@ -47,4 +47,11 @@ Mesh parse_ascii(std::string_view text, const Limits& limits = {});
 // true when the bytes look like a binary stl (size matches 84 + 50 * count).
 bool looks_binary(std::string_view bytes);
 
+// stl stores bare numbers; the user says which unit the exporter used.
+// returns false for an unknown unit name ("mm", "cm", "m", "in" are known).
+bool metres_per_unit(const std::string& unit, double& factor);
+
+// multiplies every coordinate (and the bounding box) by `factor`.
+void scale(Mesh& mesh, double factor);
+
 }  // namespace wb::stl

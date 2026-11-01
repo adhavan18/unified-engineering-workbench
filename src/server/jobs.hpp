@@ -19,15 +19,20 @@ namespace wb::server {
 
 class JobContext {
 public:
-    explicit JobContext(std::atomic<bool>& cancel, std::function<void(double, const std::string&)> report)
-        : cancel_(cancel), report_(std::move(report)) {}
+    JobContext(std::atomic<bool>& cancel, std::function<void(double, const std::string&)> report,
+               std::function<void(const std::string&)> partial)
+        : cancel_(cancel), report_(std::move(report)), partial_(std::move(partial)) {}
     bool cancelled() const { return cancel_.load(std::memory_order_relaxed); }
     const std::atomic<bool>* cancel_flag() const { return &cancel_; }
     void progress(double fraction, const std::string& message) { report_(fraction, message); }
+    // live, explicitly provisional data shown while the job runs (e.g. each
+    // benchmark run's time). it is never exported and is not the final result.
+    void partial(const std::string& json) { partial_(json); }
 
 private:
     std::atomic<bool>& cancel_;
     std::function<void(double, const std::string&)> report_;
+    std::function<void(const std::string&)> partial_;
 };
 
 struct JobOutput {
@@ -60,6 +65,7 @@ private:
         double progress = 0.0;
         std::string message = "queued";
         std::string error;
+        std::string partial_json;
         JobOutput output;
         double started_ms = 0.0, finished_ms = 0.0;
         std::thread thread;

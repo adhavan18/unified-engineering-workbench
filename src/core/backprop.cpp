@@ -50,4 +50,15 @@ std::vector<double> train_losses(Params p, double x, double y, double learning_r
     return losses;
 }
 
+std::vector<Step> train_trajectory(Params p, double x, double y, double learning_rate, int steps) {
+    std::vector<Step> out;
+    out.reserve(static_cast<std::size_t>(steps) + 1);
+    for (int s = 0; s <= steps; ++s) {
+        const Gradients g = analytic_gradients(p, x, y);
+        out.push_back({p, forward(p, x, y), g});
+        p = sgd_step(p, g, learning_rate);
+    }
+    return out;
+}
+
 }  // namespace wb::nn

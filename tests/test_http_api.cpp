@@ -132,6 +132,7 @@ TEST(api, thermal_job_runs_and_exports_csv) {
     const std::string done = f.wait_job(id);
     CHECK(done.find("\"state\":\"done\"") != std::string::npos);
     CHECK(done.find("\"max_midpoint_error_C\":1.2") != std::string::npos);  // q h^2 / 8k = 1.25 C
+    CHECK(f.call("GET", "/api/jobs/" + id + "/export?name=nodes").status == 200);
     auto csv = f.call("GET", "/api/jobs/" + id + "/export?name=convergence");
     CHECK(csv.status == 200);
     CHECK(csv.body.rfind("elements,h_m,", 0) == 0);
@@ -166,11 +167,51 @@ TEST(api, hardware_routes_demonstrate_timeout_and_recovery) {
     CHECK(f.call("POST", "/api/hardware/zzz/connect").status == 404);
 }
 
+TEST(api, live_thermal_returns_peak_balance_and_error_curves) {
+    Fixture f;
+    auto r = f.call("GET", "/api/thermal/live?meshes=10,20");
+    CHECK(r.status == 200);
+    CHECK(r.body.find("\"peak_x_m\":0.42") != std::string::npos);
+    CHECK(r.body.find("\"heat_generated_W\":1") != std::string::npos);
+    CHECK(r.body.find("\"err_abs_C\":[") != std::string::npos);
+    r = f.call("GET", "/api/thermal/live?meshes=150000,150000");
+    CHECK(r.status == 400);
+    CHECK(r.body.find("run as job") != std::string::npos);
+}
+
+TEST(api, stateless_thermal_export) {
+    Fixture f;
+    auto r = f.call("GET", "/api/thermal/export?what=midpoints&meshes=10");
+    CHECK(r.status == 200);
+    CHECK(r.body.rfind("elements,element,x_mid_m", 0) == 0);
+    CHECK(f.call("GET", "/api/thermal/export?what=bogus").status == 400);
+}
+
+TEST(api, stl_units_are_converted_to_metres) {
+    Fixture f;
+    const std::string tri =
+        "solid t\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 60 0 0\nvertex 0 40 0\nendloop\nendfacet\nendsolid t\n";
+    auto mm = f.call("POST", "/api/geometry/stl?unit=mm", tri);
+    CHECK(mm.body.find("\"bbox_max\":[0.06,0.04,0]") != std::string::npos);
+    auto in = f.call("POST", "/api/geometry/stl?unit=in", tri);
+    CHECK(in.body.find("\"metres_per_unit\":0.0254") != std::string::npos);
+    CHECK(f.call("POST", "/api/geometry/stl?unit=furlong", tri).status == 400);
+}
+
+TEST(api, both_csv_examples_are_served) {
+    Fixture f;
+    auto h = f.call("GET", "/api/examples/csv?which=heatsink");
+    CHECK(h.status == 200 && h.body.rfind("node_id,x_m,y_m,z_m,temperature_C", 0) == 0);
+    CHECK(f.call("GET", "/api/examples/csv?which=rod").status == 200);
+    CHECK(f.call("GET", "/api/examples/csv?which=moon").status == 400);
+}
+
 TEST(api, backprop_endpoint_passes_gradient_check) {
     Fixture f;
     auto r = f.call("GET", "/api/backprop");
     CHECK(r.status == 200);
     CHECK(r.body.find("\"gradient_check_ok\":true") != std::string::npos);
+    CHECK(r.body.find("\"trajectory\":{\"w\":[0.5,0.62094644752") != std::string::npos);
     CHECK(f.call("GET", "/api/backprop?lr=0").status == 400);
     auto csv = f.call("GET", "/api/backprop/export?what=loss");
     CHECK(csv.body.rfind("step,loss\n0,", 0) == 0);

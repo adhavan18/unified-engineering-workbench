@@ -14,6 +14,7 @@
 #include "core/nodal_csv.hpp"
 #include "core/stl.hpp"
 #include "core/text_scan.hpp"
+#include "core/thermal_study.hpp"
 
 namespace wb::server {
 
@@ -223,9 +224,11 @@ http::Response Api::route(const http::Request& req) {
     if (p == "/api/log" && get) return log_tail();
     if (p == "/api/geometry/stl" && post) return parse_stl(req);
     if (p == "/api/results/nodal-csv" && post) return parse_csv(req);
-    if (p == "/api/examples/stl" && get) return example("stl");
-    if (p == "/api/examples/csv" && get) return example("csv");
+    if (p == "/api/examples/stl" && get) return example(req, "stl");
+    if (p == "/api/examples/csv" && get) return example(req, "csv");
     if (p == "/api/thermal/solve" && post) return start_thermal(req);
+    if (p == "/api/thermal/live" && get) return thermal_live(req);
+    if (p == "/api/thermal/export" && get) return thermal_export(req);
     if (p == "/api/perf/benchmark" && post) return start_benchmark(req);
     if (p == "/api/backprop" && get) return backprop(req, false);
     if (p == "/api/backprop/export" && get) return backprop(req, true);
@@ -297,6 +300,10 @@ http::Response Api::parse_stl(const http::Request& req) {
     } catch (const stl::ParseError& e) {
         throw ApiError{422, name + ": " + e.what(), e.hint(), e.line()};
     }
+    const std::string unit = req.query.count("unit") ? req.query.at("unit") : "mm";
+    double to_m = 1.0;
+    if (!stl::metres_per_unit(unit, to_m)) throw ApiError{400, "unknown stl unit '" + unit + "'", "use mm, cm, m or in"};
+    stl::scale(mesh, to_m);  // everything downstream is in metres
     log_.add("info", "stl '" + name + "' parsed: " + std::to_string(mesh.triangles) + " triangles, " +
                          std::to_string(mesh.degenerate) + " degenerate");
 
@@ -304,6 +311,7 @@ http::Response Api::parse_stl(const http::Request& req) {
     w.begin_object();
     w.field("file", name).field("solid_name", mesh.name).field("triangles", mesh.triangles);
     w.field("degenerate_triangles", mesh.degenerate).field("solids", mesh.solids).field("bytes", req.body.size());
+    w.field("unit", unit).field("metres_per_unit", to_m);
     w.key("bbox_min").array({mesh.bbox_min[0], mesh.bbox_min[1], mesh.bbox_min[2]});
     w.key("bbox_max").array({mesh.bbox_max[0], mesh.bbox_max[1], mesh.bbox_max[2]});
     w.end_object();
@@ -350,122 +358,121 @@ http::Response Api::parse_csv(const http::Request& req) {
     return r;
 }
 
-http::Response Api::example(const std::string& which) {
-    const fs::path file = ctx_.data_root / "examples" /
-                          (which == "stl" ? "heatsink_ascii.stl" : "rod_nodal_temperatures_synthetic.csv");
+namespace {
+
+// what the ui needs from a study; arrays are already decimated by the core
+std::string study_json(const fea::Study& s) {
+    JsonWriter w;
+    w.begin_object();
+    w.key("problem").begin_object();
+    w.field("L_m", s.rod.length_m).field("A_m2", s.rod.area_m2).field("k_W_mK", s.rod.conductivity_W_mK);
+    w.field("q_W_m3", s.rod.heat_gen_W_m3).field("T0_C", s.rod.t_left_C).field("TL_C", s.rod.t_right_C);
+    w.end_object();
+    w.field("peak_x_m", s.peak_x_m).field("peak_T_C", s.peak_T_C);
+    // heat leaving through each end, from the exact solution: q = -kA dT/dx (outward)
+    const fea::RodProblem& p = s.rod;
+    const double kA = p.conductivity_W_mK * p.area_m2;
+    const double drift = (p.t_right_C - p.t_left_C) / p.length_m;
+    const double bulge = p.heat_gen_W_m3 * p.length_m / (2 * p.conductivity_W_mK);
+    w.field("heat_out_left_W", kA * (drift + bulge));    // = +kA T'(0)
+    w.field("heat_out_right_W", -kA * (drift - bulge));  // = -kA T'(L)
+    w.field("heat_generated_W", p.heat_gen_W_m3 * p.area_m2 * p.length_m);
+    w.key("exact").begin_object().key("x_m").array(s.exact_x_m).key("T_C").array(s.exact_T_C).end_object();
+    w.key("meshes").begin_array();
+    for (std::size_t i = 0; i < s.meshes.size(); ++i) {
+        const auto& m = s.meshes[i];
+        w.begin_object();
+        w.field("elements", m.elements).field("h_m", m.error.h_m);
+        w.field("max_nodal_error_C", m.error.max_nodal_error_C);
+        w.field("max_midpoint_error_C", m.error.max_midpoint_error_C);
+        w.field("worst_midpoint_x_m", m.error.worst_midpoint_x_m);
+        w.field("theory_midpoint_error_C", m.theory_midpoint_error_C);
+        w.key("observed_order");
+        if (i == 0) w.null();
+        else w.value(m.observed_order);
+        w.key("x_m").array(m.plot_x_m).key("T_C").array(m.plot_T_C);
+        w.key("err_x_m").array(m.err_x_m).key("err_abs_C").array(m.err_abs_C);
+        w.end_object();
+    }
+    w.end_array();
+    w.end_object();
+    return w.str();
+}
+
+constexpr long long kLiveNodeLimit = 200'000;
+constexpr long long kExportNodeLimit = 2'000'000;
+
+}  // namespace
+
+http::Response Api::example(const http::Request& req, const std::string& kind) {
+    std::string name;
+    if (kind == "stl") {
+        name = "heatsink_ascii.stl";
+    } else {
+        const std::string which = req.query.count("which") ? req.query.at("which") : "heatsink";
+        if (which == "heatsink") name = "heatsink_nodal_temperatures_synthetic.csv";
+        else if (which == "rod") name = "rod_nodal_temperatures_synthetic.csv";
+        else throw ApiError{400, "unknown example '" + which + "'", "use heatsink or rod"};
+    }
+    const fs::path file = ctx_.data_root / "examples" / name;
     std::string body = read_file(file);
     if (body.empty()) {
-        throw ApiError{404, "example file missing: " + file.filename().string(),
-                       "the data/examples folder must sit next to Launch.exe"};
+        throw ApiError{404, "example file missing: " + name, "the data/examples folder must sit next to Launch.exe"};
     }
     http::Response r;
     r.content_type = "text/plain; charset=utf-8";
     r.body = std::move(body);
-    r.headers.push_back({"X-File-Name", file.filename().string()});
+    r.headers.push_back({"X-File-Name", name});
     return r;
+}
+
+http::Response Api::thermal_live(const http::Request& req) {
+    const fea::RodProblem rod = rod_from(req);
+    const std::vector<int> meshes = int_list_param(req, "meshes", "10,20,40,80");
+    if (auto why = fea::validate_study(rod, meshes, kLiveNodeLimit); !why.empty()) {
+        throw ApiError{400, why, "for very fine meshes use 'run as job', which has progress and cancel"};
+    }
+    return json_response(study_json(fea::run_study(rod, meshes, false)));
+}
+
+http::Response Api::thermal_export(const http::Request& req) {
+    const fea::RodProblem rod = rod_from(req);
+    const std::vector<int> meshes = int_list_param(req, "meshes", "10,20,40,80");
+    if (auto why = fea::validate_study(rod, meshes, kExportNodeLimit); !why.empty()) throw ApiError{400, why, ""};
+    const std::string what = req.query.count("what") ? req.query.at("what") : "convergence";
+    if (what != "nodes" && what != "midpoints" && what != "convergence") {
+        throw ApiError{400, "export must be nodes, midpoints or convergence", ""};
+    }
+    const fea::Study s = fea::run_study(rod, meshes, what != "convergence");
+    const std::string csv = what == "nodes"       ? fea::nodes_csv(s)
+                            : what == "midpoints" ? fea::midpoints_csv(s)
+                                                  : fea::convergence_csv(s);
+    log_.add("info", "exported fea_" + what + ".csv");
+    return csv_download(csv, "fea_" + what + ".csv");
 }
 
 http::Response Api::start_thermal(const http::Request& req) {
     const fea::RodProblem rod = rod_from(req);
     const std::vector<int> meshes = int_list_param(req, "meshes", "10,20,40,80");
-    for (int n : meshes) {
-        if (auto why = fea::validate(rod, n); !why.empty()) throw ApiError{400, why, "fix the highlighted input"};
+    if (auto why = fea::validate_study(rod, meshes, 20'000'000); !why.empty()) {
+        throw ApiError{400, why, "fix the highlighted input"};
     }
     long long total_nodes = 0;
     for (int n : meshes) total_nodes += n + 1;
+    const bool full_csv = total_nodes <= kExportNodeLimit;
 
-    const std::string id = jobs_.start("thermal", [rod, meshes, total_nodes](JobContext& job) {
+    const std::string id = jobs_.start("thermal", [rod, meshes, full_csv](JobContext& job) {
         JobOutput out;
-        JsonWriter w;
-        std::ostringstream sol, mid, conv;
-        const bool full_csv = total_nodes <= 2'000'000;
-        sol << "elements,node,x_m,T_fe_C,T_exact_C,abs_error_C\n";
-        mid << "elements,element,x_mid_m,T_fe_C,T_exact_C,abs_error_C\n";
-        conv << "elements,h_m,max_nodal_error_C,max_midpoint_error_C,theory_midpoint_error_C,observed_order\n";
-
-        w.begin_object();
-        w.key("problem").begin_object();
-        w.field("L_m", rod.length_m).field("A_m2", rod.area_m2).field("k_W_mK", rod.conductivity_W_mK);
-        w.field("q_W_m3", rod.heat_gen_W_m3).field("T0_C", rod.t_left_C).field("TL_C", rod.t_right_C);
-        w.end_object();
-
-        w.key("exact").begin_object();
-        std::vector<double> ex, et;
-        for (int i = 0; i <= 400; ++i) {
-            const double x = rod.length_m * i / 400.0;
-            ex.push_back(x);
-            et.push_back(fea::exact_temperature(rod, x));
-        }
-        w.key("x_m").array(ex).key("T_C").array(et).end_object();
-
-        w.key("meshes").begin_array();
-        std::vector<fea::ErrorReport> reports;
-        for (std::size_t m = 0; m < meshes.size(); ++m) {
-            if (job.cancelled()) return out;
-            const int n = meshes[m];
-            job.progress(static_cast<double>(m) / meshes.size(), "solving N = " + std::to_string(n));
-            const fea::Solution s = fea::solve(rod, n);
-            const fea::ErrorReport r = fea::measure_error(rod, s);
-            reports.push_back(r);
-
-            // at most ~2000 plotted points per mesh; errors above use every node
-            const std::size_t stride = std::max<std::size_t>(1, s.x_m.size() / 2000);
-            std::vector<double> px, pt;
-            for (std::size_t i = 0; i < s.x_m.size(); i += stride) {
-                px.push_back(s.x_m[i]);
-                pt.push_back(s.temp_C[i]);
-            }
-            if (px.back() != s.x_m.back()) {
-                px.push_back(s.x_m.back());
-                pt.push_back(s.temp_C.back());
-            }
-            const double theory = rod.heat_gen_W_m3 * r.h_m * r.h_m / (8.0 * rod.conductivity_W_mK);
-            w.begin_object();
-            w.field("elements", n).field("h_m", r.h_m).field("plot_stride", stride);
-            w.field("max_nodal_error_C", r.max_nodal_error_C).field("max_midpoint_error_C", r.max_midpoint_error_C);
-            w.field("worst_midpoint_x_m", r.worst_midpoint_x_m).field("theory_midpoint_error_C", theory);
-            w.key("x_m").array(px).key("T_C").array(pt);
-            w.end_object();
-
-            if (full_csv) {
-                for (std::size_t i = 0; i < s.x_m.size(); ++i) {
-                    const double te = fea::exact_temperature(rod, s.x_m[i]);
-                    sol << n << ',' << i << ',' << fmt(s.x_m[i]) << ',' << fmt(s.temp_C[i]) << ',' << fmt(te) << ','
-                        << fmt(std::abs(s.temp_C[i] - te)) << '\n';
-                }
-                for (std::size_t e = 0; e + 1 < s.x_m.size(); ++e) {
-                    const double xm = 0.5 * (s.x_m[e] + s.x_m[e + 1]);
-                    const double tf = 0.5 * (s.temp_C[e] + s.temp_C[e + 1]);
-                    const double te = fea::exact_temperature(rod, xm);
-                    mid << n << ',' << e << ',' << fmt(xm) << ',' << fmt(tf) << ',' << fmt(te) << ','
-                        << fmt(std::abs(tf - te)) << '\n';
-                }
-            }
-            const double order = m > 0 ? fea::observed_order(reports[m - 1], r) : NAN;
-            conv << n << ',' << fmt(r.h_m) << ',' << fmt(r.max_nodal_error_C) << ',' << fmt(r.max_midpoint_error_C)
-                 << ',' << fmt(theory) << ',' << (m > 0 ? fmt(order) : "") << '\n';
-        }
-        w.end_array();
-
-        w.key("convergence").begin_array();
-        for (std::size_t m = 0; m < reports.size(); ++m) {
-            w.begin_object().field("elements", reports[m].elements).field("h_m", reports[m].h_m);
-            w.field("max_midpoint_error_C", reports[m].max_midpoint_error_C);
-            w.field("max_nodal_error_C", reports[m].max_nodal_error_C);
-            w.key("observed_order");
-            if (m > 0) w.value(fea::observed_order(reports[m - 1], reports[m]));
-            else w.null();
-            w.end_object();
-        }
-        w.end_array();
-        w.field("full_csv", full_csv);
-        w.end_object();
-
-        out.result_json = w.str();
-        out.exports["convergence"] = conv.str();
+        const fea::Study s = fea::run_study(rod, meshes, full_csv, [&job](double f, const std::string& msg) {
+            job.progress(f, msg);
+            return !job.cancelled();
+        });
+        if (s.cancelled) return out;
+        out.result_json = study_json(s);
+        out.exports["convergence"] = fea::convergence_csv(s);
         if (full_csv) {
-            out.exports["solution"] = sol.str();
-            out.exports["midpoints"] = mid.str();
+            out.exports["nodes"] = fea::nodes_csv(s);
+            out.exports["midpoints"] = fea::midpoints_csv(s);
         }
         return out;
     });
@@ -492,12 +499,23 @@ http::Response Api::start_benchmark(const http::Request& req) {
     const double ready_ms = ctx_.ready_ms;
     const std::string id = jobs_.start("benchmark", [cfg, sys, ready_ms](JobContext& job) {
         JobOutput out;
-        const auto report = batch::run_benchmark(cfg, sys.logical_cpus, job.cancel_flag(),
-                                                 [&job](std::size_t done, std::size_t total) {
-                                                     job.progress(static_cast<double>(done) / total,
-                                                                  "run " + std::to_string(done) + " of " +
-                                                                      std::to_string(total));
-                                                 });
+        // every finished run is streamed to the ui as provisional data
+        std::string runs_json;
+        auto on_run = [&](std::size_t row, int workers, int round, bool measured, double seconds) {
+            JsonWriter r;
+            r.begin_object().field("row", row).field("mode", row == 0 ? "serial" : "parallel");
+            r.field("workers", workers).field("round", round).field("measured", measured).field("time_s", seconds);
+            r.end_object();
+            runs_json += (runs_json.empty() ? "" : ",") + r.str();
+            job.partial("{\"runs\":[" + runs_json + "]}");
+        };
+        const auto report = batch::run_benchmark(
+            cfg, sys.logical_cpus, job.cancel_flag(),
+            [&job](std::size_t done, std::size_t total) {
+                job.progress(static_cast<double>(done) / total,
+                             "run " + std::to_string(done) + " of " + std::to_string(total));
+            },
+            on_run);
         if (report.cancelled) return out;
 
         JsonWriter w;
@@ -685,6 +703,21 @@ http::Response Api::backprop(const http::Request& req, bool as_csv) {
     w.field("gradient_check_ok", all_ok).field("tolerance", 1e-5).field("epsilon", eps);
     w.field("loss_after_first_step", f1.loss);
     w.key("losses").array(losses);
+
+    // every step's state, column-wise, for the step scrubber (capped to keep replies small)
+    if (steps <= 2000) {
+        const auto traj = nn::train_trajectory(p0, x, y, lr, static_cast<int>(steps) + 1);
+        std::vector<double> cols[11];
+        for (const auto& s : traj) {
+            const double row[] = {s.params.w, s.params.b, s.params.v, s.params.c, s.forward.z, s.forward.h,
+                                  s.forward.y_hat, s.grads.dw, s.grads.db, s.grads.dv, s.grads.dc};
+            for (int c = 0; c < 11; ++c) cols[c].push_back(row[c]);
+        }
+        const char* col_names[] = {"w", "b", "v", "c", "z", "h", "y_hat", "dw", "db", "dv", "dc"};
+        w.key("trajectory").begin_object();
+        for (int c = 0; c < 11; ++c) w.key(col_names[c]).array(cols[c]);
+        w.end_object();
+    }
     w.end_object();
     return json_response(w.str());
 }

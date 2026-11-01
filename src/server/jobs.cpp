@@ -44,11 +44,17 @@ std::string JobManager::start(const std::string& kind, Work work) {
 
     std::lock_guard<std::mutex> job_lock(job->mutex);  // thread handle is written under the job lock
     job->thread = std::thread([job, work = std::move(work)] {
-        JobContext ctx(job->cancel, [job](double fraction, const std::string& message) {
-            std::lock_guard<std::mutex> lock(job->mutex);
-            job->progress = fraction;
-            job->message = message;
-        });
+        JobContext ctx(
+            job->cancel,
+            [job](double fraction, const std::string& message) {
+                std::lock_guard<std::mutex> lock(job->mutex);
+                job->progress = fraction;
+                job->message = message;
+            },
+            [job](const std::string& json) {
+                std::lock_guard<std::mutex> lock(job->mutex);
+                job->partial_json = json;
+            });
         try {
             JobOutput out = work(ctx);
             std::lock_guard<std::mutex> lock(job->mutex);
@@ -99,6 +105,7 @@ std::optional<std::string> JobManager::status_json(const std::string& id) {
     const double end = job->finished_ms > 0 ? job->finished_ms : now_ms();
     w.field("elapsed_ms", end - job->started_ms);
     if (job->state == State::failed) w.field("error", job->error);
+    if (job->state == State::running && !job->partial_json.empty()) w.key("partial").raw(job->partial_json);
     if (job->state == State::done) {
         w.key("result").raw(job->output.result_json.empty() ? "null" : job->output.result_json);
         w.key("exports").begin_array();

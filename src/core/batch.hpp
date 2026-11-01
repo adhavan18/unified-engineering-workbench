@@ -80,13 +80,18 @@ struct BenchReport {
 
 std::string validate(const BenchConfig& cfg);
 
+// called after every single run, so a ui can plot timings as they arrive.
+// row = index into BenchReport::rows (0 = serial, else `workers` threads);
+// round counts warm-ups too.
+using RunCallback = std::function<void(std::size_t row, int workers, int round, bool measured, double seconds)>;
+
 // runs warm-up + measured repetitions for serial and each worker count, with the
 // configurations interleaved inside each repetition so that cpu turbo/thermal
 // drift hits all of them equally. `progress` is called after every run;
 // `cancel` is polled between cases.
 BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
                           const std::atomic<bool>* cancel = nullptr,
-                          const Progress& progress = {});
+                          const Progress& progress = {}, const RunCallback& on_run = {});
 
 double median(std::vector<double> values);
 

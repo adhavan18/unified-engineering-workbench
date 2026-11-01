@@ -102,6 +102,23 @@ void face_normal(const float* v, float* n) {
 
 }  // namespace
 
+bool metres_per_unit(const std::string& unit, double& factor) {
+    if (unit == "mm") factor = 1e-3;
+    else if (unit == "cm") factor = 1e-2;
+    else if (unit == "m") factor = 1.0;
+    else if (unit == "in") factor = 0.0254;
+    else return false;
+    return true;
+}
+
+void scale(Mesh& mesh, double factor) {
+    for (float& v : mesh.vertices) v = static_cast<float>(v * factor);
+    for (int a = 0; a < 3; ++a) {
+        mesh.bbox_min[a] *= factor;
+        mesh.bbox_max[a] *= factor;
+    }
+}
+
 bool looks_binary(std::string_view bytes) {
     if (bytes.size() < 84) return false;
     std::uint32_t count = 0;
