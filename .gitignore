@@ -1,0 +1,11 @@
+# build output and packaging
+build/
+dist/
+*.zip
+# local scratch
+*.log
+/tmp/
+# editor state (the shared run configs in .vscode/ are tracked)
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
