@@ -146,9 +146,9 @@ in every session (limit 1e-8). each case is computed by identical code on one th
 </div>
 
 <h2>4. cad / ansys data (task b)</h2>
-<p><b>ascii stl</b> and <b>nodal csv</b> (<code>node_id,x_m,y_m,z_m,temperature_C</code>) are parsed and validated in c++. the ui shows stl
-triangles (rotate, pan, zoom, fit) and the csv as a point cloud coloured with viridis, with a legend in °C and click-to-inspect (node id,
-x/y/z in m, T in °C). examples are self-created; the csv is labelled synthetic in the file name, the provenance file and the ui. rejected
+<p><b>ascii stl</b> and <b>nodal csv</b> (<code>node_id,x_m,y_m,z_m,temperature_C</code>) are parsed and validated in c++. the ui overlays both in
+one 3d scene (rotate, pan, zoom, fit, view presets, opacity, wireframe) with the nodes coloured by temperature (inferno, viridis or
+cool–warm), a legend in °C, an adjustable colour range and threshold, hover tooltips and click-to-pin inspection (node id, x/y/z in m, T in °C). examples are self-created; the csv is labelled synthetic in the file name, the provenance file and the ui. rejected
 inputs (each with a line number and hint): empty or whitespace-only, binary stl (even with a “solid” header), wrong vertex count, nan/inf,
 truncated, wrong or extra columns, duplicate ids, T &lt; −273.15 °C, header-only. size limits: 256 MB, 2M triangles, 5M nodes.</p>
 <table>
@@ -213,7 +213,7 @@ desktop and 375 px widths.</p>
 <h2>8. limitations</h2>
 <ul>
   <li>physics: 1d, steady, constant k, uniform q, dirichlet ends only.</li>
-  <li>stl ascii only, no repair or edge extraction; the units selector labels, it does not convert. csv: one fixed schema;
+  <li>stl ascii only, no repair; the stl unit is converted to metres in c++, but there is no mesh-to-result registration. csv: one fixed schema;
     ansys text exports need renaming (documented, not tested against a live ansys install).</li>
   <li>performance measured on a single hybrid-core laptop with turbo; ±5 % between sessions.</li>
   <li>hardware is simulated end to end; pinouts are assumptions until checked against real schematics.</li>

@@ -27,28 +27,28 @@ $esc = [System.Net.WebUtility]::HtmlEncode($ZipUrl)
 
 $cover = @"
 <section class="cover">
-  <div class="eyebrow">pass science works · r&amp;d internship 2026–27 · common technical assignment</div>
+  <div class="eyebrow">pass science works &middot; r&amp;d internship 2026&ndash;27 &middot; common technical assignment</div>
   <h1 style="font-size:24pt;margin:6pt 0 4pt">unified engineering workbench</h1>
-  <p class="sub">candidate id: <b>$CandidateId</b> · submitted $date · git commit $commit</p>
+  <p class="sub">candidate id: <b>$CandidateId</b> &middot; submitted $date &middot; git commit $commit</p>
   <div class="box" style="margin:14pt 0">
     <p style="margin:0 0 6pt"><b>the full submission is a zip</b> (Launch.exe, source, tests, data, results, docs, git bundle).
     the form accepts one pdf of at most 1 mb, so this pdf carries the report and a link to the zip.</p>
     <p style="margin:0 0 4pt">download: <a href="$esc">$esc</a></p>
-    <p style="margin:0 0 4pt">file: ${CandidateId}_Workbench.zip · $mb MB</p>
+    <p style="margin:0 0 4pt">file: ${CandidateId}_Workbench.zip &middot; $mb MB</p>
     <p style="margin:0">sha-256: <code style="font-size:8pt">$hash</code></p>
   </div>
   <h2>how to run</h2>
   <p>extract the zip, double-click <code>Launch.exe</code>. the default browser opens the app on 127.0.0.1; no install, admin rights or
-  internet. vs code: open the folder, run and debug → "run workbench (packaged Launch.exe)". source build: README.md.</p>
+  internet. vs code: open the folder, run and debug &rarr; "run workbench (packaged Launch.exe)". source build: README.md.</p>
   <h2>what is where in the zip</h2>
   <table>
     <tr><th>brief section</th><th>evidence</th></tr>
-    <tr><td>a · interface, one-click</td><td>Launch.exe, app/www, .vscode/, README.md; the in-app overview maps every bullet of the brief</td></tr>
-    <tr><td>b · cad / ansys data</td><td>src/core/stl.*, nodal_csv.*; data/examples + data/PROVENANCE.md; results/file_size_tests.csv</td></tr>
-    <tr><td>c · thermal fea</td><td>src/core/fea1d.*, thermal_study.*; results/fea_*.csv + .svg; report §2</td></tr>
-    <tr><td>d · multicore</td><td>src/core/worker_pool.*, batch.*; results/benchmark_session1-3, launch_to_ready.csv; report §3</td></tr>
-    <tr><td>e · embedded</td><td>src/core/hardware.*; docs/embedded_design.md (block diagram, pin/voltage table, plan)</td></tr>
-    <tr><td>f · backprop</td><td>src/core/backprop.*; results/backprop_*; handwritten pages: docs/handwritten_backprop.pdf</td></tr>
+    <tr><td>a &middot; interface, one-click</td><td>Launch.exe, app/www, .vscode/, README.md; the in-app overview maps every bullet of the brief</td></tr>
+    <tr><td>b &middot; cad / ansys data</td><td>src/core/stl.*, nodal_csv.*; data/examples + data/PROVENANCE.md; results/file_size_tests.csv</td></tr>
+    <tr><td>c &middot; thermal fea</td><td>src/core/fea1d.*, thermal_study.*; results/fea_*.csv + .svg; report &sect;2</td></tr>
+    <tr><td>d &middot; multicore</td><td>src/core/worker_pool.*, batch.*; results/benchmark_session1-3, launch_to_ready.csv; report &sect;3</td></tr>
+    <tr><td>e &middot; embedded</td><td>src/core/hardware.*; docs/embedded_design.md (block diagram, pin/voltage table, plan)</td></tr>
+    <tr><td>f &middot; backprop</td><td>src/core/backprop.*; results/backprop_*; handwritten pages: docs/handwritten_backprop.pdf</td></tr>
     <tr><td>tests, vcs, ai use</td><td>tests/ (77 tests), docs/test_output.txt, repo/workbench.bundle + commit_log.txt, docs/ai_use_log.md, docs/ownership.md</td></tr>
     <tr><td>demo</td><td>docs/walkthrough/ (timestamped screenshots + backend log) and the demo video, if submitted separately</td></tr>
   </table>
