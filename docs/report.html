@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>unified engineering workbench: report</title>
+<style>
+  @page { size: A4; margin: 14mm 15mm 14mm 15mm; }
+  :root { --ink: #111827; --muted: #4b5563; --rule: #d1d5db; --accent: #0a66d8; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font: 9.6pt/1.42 "Segoe UI", system-ui, sans-serif; color: var(--ink); margin: 0; }
+  h1 { font-size: 17pt; margin: 0 0 2pt; letter-spacing: -0.01em; }
+  h2 { font-size: 11.5pt; margin: 12pt 0 4pt; color: var(--accent); border-bottom: 1px solid var(--rule); padding-bottom: 2pt; }
+  h3 { font-size: 10pt; margin: 8pt 0 3pt; }
+  p { margin: 0 0 5pt; }
+  ul { margin: 0 0 5pt; padding-left: 14pt; }
+  li { margin: 1pt 0; }
+  code { font: 8.6pt Consolas, monospace; background: #f3f4f6; padding: 0 2pt; border-radius: 2pt; }
+  table { border-collapse: collapse; width: 100%; margin: 3pt 0 6pt; font-size: 8.8pt; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--rule); padding: 2.5pt 5pt; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; background: #f9fafb; }
+  .sub { color: var(--muted); margin-bottom: 8pt; }
+  .figs { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; margin: 4pt 0 6pt; }
+  .figs img, .fig img { width: 100%; border: 1px solid var(--rule); border-radius: 3pt; }
+  .fig { margin: 4pt 0; }
+  .cap { font-size: 8pt; color: var(--muted); margin-top: 1pt; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+  .break { break-before: page; }
+  .box { border: 1px solid var(--rule); border-radius: 4pt; padding: 5pt 7pt; background: #f9fafb; margin: 4pt 0 6pt; }
+  .ok { color: #15803d; font-weight: 600; }
+  .figs, .fig, table, .box, .two { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  .bp { grid-template-columns: 1.15fr 1fr; }
+  .bp td, .bp th { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<h1>unified engineering workbench: report</h1>
+<div class="sub">pass science works r&amp;d internship 2026–27 · common technical assignment · candidate id: ________ ·
+windows 11 x64 · c++17 backend, local web ui · tested on intel core i5-1240P, 15.7 GiB</div>
+
+<h2>1. design choices</h2>
+<ul>
+  <li><b>one exe, browser ui.</b> <code>Launch.exe</code> is a statically linked c++17 program. it starts a small http server on
+    <code>127.0.0.1</code> (random free port), then opens the default browser. there is no install, no runtime to ship
+    (only windows system dlls, checked with <code>objdump -p</code>), nothing from the internet, and it is never reachable from the network.</li>
+  <li><b>strict layering.</b> <code>src/core</code> holds every engineering module (fea, batch/threads, stl, csv, hardware, backprop) and knows
+    nothing about http. <code>src/server</code> is transport only: request parsing, routing, validation, background jobs.
+    <code>src/frontend</code> only draws. every number on screen is computed in c++.</li>
+  <li><b>no third-party libraries.</b> a hand-written webgl viewer and canvas plots keep licensing trivial and the zip small (≈ 4 MB exe).
+    the cost is less polish than a full 3d library; the benefit is that every line can be explained in a review.</li>
+  <li><b>responsive under load.</b> each http request has its own thread; long work (fea sweeps, benchmarks) runs as a job with progress
+    and cancel. a job publishes its result in one step only when it finishes, so cancelling never leaves half-written results or exports.</li>
+  <li><b>actionable errors.</b> parsers report <i>what</i> is wrong, the <i>line</i>, and a <i>hint</i> on how to fix the file
+    (e.g. “this is a binary stl: re-export with ‘ascii’ selected”). the ui validates inputs before sending; the backend validates again.</li>
+</ul>
+
+<h2>2. thermal fea (task c)</h2>
+<div class="two">
+<div>
+<h3>formulation</h3>
+<p>strong form −d/dx(kA dT/dx) = qA on 0 &lt; x &lt; L, T(0) = 100 °C, T(L) = 20 °C, with L = 1 m, A = 1e-4 m², k = 10 W/(m·K),
+q = 10⁴ W/m³. lateral surfaces insulated, properties constant, steady state.</p>
+<p>weak form with linear shape functions N₁ = 1 − ξ, N₂ = ξ on an element of length h gives</p>
+<p style="margin-left:8pt"><b>k</b><sub>e</sub> = (kA/h)·[1 −1; −1 1] (W/K), &nbsp; <b>f</b><sub>e</sub> = (qAh/2)·[1 1] (W)</p>
+<p>summed into a tridiagonal global system. both ends are dirichlet: the known column is moved to the right-hand side and the row
+is replaced by the identity, which keeps the matrix symmetric. the system is solved with the thomas algorithm (o(N)).</p>
+<p>units: si throughout; temperatures in °C (only differences enter the equation, so °C vs K is safe).</p>
+</div>
+<div>
+<h3>verification against T<sub>exact</sub>(x) = 100 − 80x/L + (q/2k) x(L − x)</h3>
+<table>
+  <tr><th>N</th><th>h (m)</th><th>max midpoint error (°C)</th><th>q h²/(8k)</th><th>max nodal error (°C)</th><th>order</th></tr>
+  <tr><td>10</td><td>0.1</td><td>1.25000000</td><td>1.25</td><td>5.7e-14</td><td>–</td></tr>
+  <tr><td>20</td><td>0.05</td><td>0.31250000</td><td>0.3125</td><td>2.6e-13</td><td>2.0000</td></tr>
+  <tr><td>40</td><td>0.025</td><td>0.07812500</td><td>0.078125</td><td>7.7e-13</td><td>2.0000</td></tr>
+  <tr><td>80</td><td>0.0125</td><td>0.01953125</td><td>0.01953125</td><td>1.1e-12</td><td>2.0000</td></tr>
+</table>
+<p>the midpoint error uses <b>fe interpolation</b> (T<sub>i</sub> + T<sub>i+1</sub>)/2, not the exact value at nodes. it equals the
+interpolation-error bound h²/8·|T″| = qh²/(8k) to 1e-9 and falls 4× per halving: second order. the peak temperature
+is 188.2 °C at x = 0.42 m.</p>
+</div>
+</div>
+<div class="figs">
+  <div><img src="../results/fea_temperature.svg" alt=""><div class="cap">fig 1. fe solutions for N = 10–80 vs exact (raw data: results/fea_solution_nodes.csv)</div></div>
+  <div><img src="../results/fea_convergence.svg" alt=""><div class="cap">fig 2. log-log convergence; nodal error stays at round-off (results/fea_convergence.csv, fea_midpoints.csv)</div></div>
+</div>
+<div class="box"><b>debugging insight / what i learned.</b> the first run showed nodal errors of ~1e-13 °C for every mesh, which looks like
+“nothing converges”. it is a known 1d property: with linear elements and exact load integration the fe solution is exact <i>at the nodes</i>
+(the green's function of this operator is piecewise linear), so all discretisation error sits between nodes. reporting only nodal
+error would hide it, which is why the brief asks for midpoint values. tests now pin both facts: nodal error &lt; 1e-9 and midpoint error
+= qh²/8k. tests also check that interior rows of the assembled matrix sum to zero (a uniform temperature conducts no heat) and that the load
+vector sums to qAL = 1 W. a sign or scaling slip in assembly breaks one of these immediately.</div>
+
+<h2>3. multicore performance (task d)</h2>
+<div class="two">
+<div>
+<table>
+  <tr><th colspan="2">setup</th></tr>
+  <tr><td>cpu</td><td>intel core i5-1240P (hybrid: 4 performance + 8 efficiency cores)</td></tr>
+  <tr><td>cores</td><td>12 physical / 16 logical</td></tr>
+  <tr><td>ram</td><td>15.7 GiB</td></tr>
+  <tr><td>compiler</td><td>gcc 16.2.0 (winlibs mingw-w64 ucrt)</td></tr>
+  <tr><td>flags</td><td>-O3 -DNDEBUG -std=c++17, static link</td></tr>
+  <tr><td>workload</td><td>400 independent rod solves × 20,000 elements; seed 20261101; k ∈ [1, 400] W/(m·K), q ∈ [1e3, 1e5] W/m³</td></tr>
+  <tr><td>protocol</td><td>1 warm-up + 5 measured runs per config, median; configs interleaved each round</td></tr>
+  <tr><td>timed</td><td>solve loop only; case generation, thread start-up, file i/o and rendering excluded</td></tr>
+</table>
+</div>
+<div>
+<p><b>implementation.</b> <code>WorkerPool</code> is a fixed set of <code>std::thread</code>s created once (outside the timer). a batch is
+handed out one case at a time through an atomic counter (dynamic scheduling). each worker writes only into its own pre-allocated output
+slot, so results stay in input order without locks. the serial path is a plain loop over the same <code>fea::solve</code>.</p>
+<p><b>agreement.</b> the first run of every configuration is compared node by node with the serial output: max |ΔT| = <span class="ok">0 °C</span>
+in every session (limit 1e-8). each case is computed by identical code on one thread, so results are bit-identical.</p>
+<p><b>launch-to-ready</b> (process creation → listening socket, <code>--ready-check</code>, 5 runs): 54, 58, 61, 62, 68 ms. browser start-up comes on top.</p>
+</div>
+</div>
+<table>
+  <tr><th>session</th><th>serial median (s)</th><th>p=1: median / speedup</th><th>p=2: median / speedup / eff.</th><th>p=4: median / speedup / eff.</th><th>notes</th></tr>
+  <tr><td>2</td><td>0.5585</td><td>0.5458 / 1.02</td><td>0.2922 / 1.91 / 0.96</td><td>0.1511 / 3.70 / 0.92</td><td>idle machine</td></tr>
+  <tr><td>3</td><td>0.5401</td><td>0.5396 / 1.00</td><td>0.2904 / 1.86 / 0.93</td><td>0.1475 / 3.66 / 0.92</td><td>idle machine</td></tr>
+  <tr><td>1</td><td>0.6800</td><td>0.7573 / 0.90</td><td>0.2920 / 2.33 / 1.16</td><td>0.1428 / 4.76 / 1.19</td><td>browser + backend active; serial reps 0.41–0.93 s</td></tr>
+</table>
+<div class="figs">
+  <div><img src="../results/benchmark_session2/benchmark_speedup.svg" alt=""><div class="cap">fig 3. speedup T₁/Tₚ, session 2 (raw reps: results/benchmark_session*/benchmark_raw.csv)</div></div>
+  <div>
+    <h3>analysis</h3>
+    <ul>
+      <li><b>scaling.</b> on an idle machine, p = 2 gives 1.86–1.91× and p = 4 gives 3.66–3.70× (efficiency ≈ 0.92). losses come from memory
+        bandwidth (each solve streams ~1 MB of vectors), allocator traffic (every solve allocates its own vectors) and a short tail where
+        the last cases finish on fewer threads.</li>
+      <li><b>noise source found and fixed.</b> the first harness ran configs as blocks; the 1-thread pool then looked ~1.5× slower than serial.
+        a probe running the same loop on a fresh thread showed no thread penalty. alternating serial and pool(1) gave a ratio ≈ 1.0, and
+        both slowed from ~0.40 s to ~0.60 s after a few seconds: the laptop's turbo budget expires. block order gave the first config the
+        fast clock, so configs are now interleaved (probes kept in <code>tools/experiments</code>).</li>
+      <li><b>session 1 is kept, not hidden.</b> its “superlinear” 4.76× is not real scaling: its serial median was inflated by clock and
+        core-type changes while other apps ran (single-thread reps spread 2.3×). treat speedups as ±5 % on this hardware.</li>
+      <li><b>limits.</b> one laptop; no affinity pinning; a single-logical-cpu machine would still run the parallel path (tested), but its
+        speedup cannot be assessed.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>4. cad / ansys data (task b)</h2>
+<p><b>ascii stl</b> and <b>nodal csv</b> (<code>node_id,x_m,y_m,z_m,temperature_C</code>) are parsed and validated in c++. the ui shows stl
+triangles (rotate, pan, zoom, fit) and the csv as a point cloud coloured with viridis, with a legend in °C and click-to-inspect (node id,
+x/y/z in m, T in °C). examples are self-created; the csv is labelled synthetic in the file name, the provenance file and the ui. rejected
+inputs (each with a line number and hint): empty or whitespace-only, binary stl (even with a “solid” header), wrong vertex count, nan/inf,
+truncated, wrong or extra columns, duplicate ids, T &lt; −273.15 °C, header-only. size limits: 256 MB, 2M triangles, 5M nodes.</p>
+<table>
+  <tr><th>tested input</th><th>size</th><th>backend parse</th><th>full ui path</th></tr>
+  <tr><td>stl, 1.2M triangles</td><td>156 MB</td><td>1.1 s</td><td>114 MB file: 4.9 s to rendered</td></tr>
+  <tr><td>stl, 2.16M triangles</td><td>282 MB</td><td>rejected: size limit</td><td>–</td></tr>
+  <tr><td>csv, 1M nodes / 4M nodes</td><td>42 / 171 MB</td><td>1.1–1.6 s / 6.4 s</td><td>33 MB, 1M nodes: 3.4 s; node pick instant</td></tr>
+</table>
+
+<h2>5. embedded integration (task e)</h2>
+<div class="fig">
+<img src="../src/frontend/img/block_diagram.svg" alt="" style="width:88%;display:block;margin:0 auto;border:1px solid #d1d5db;border-radius:3pt">
+<div class="cap">fig 4. block diagram (full pin/voltage table with connectors and pin assumptions: docs/embedded_design.md)</div>
+</div>
+<div>
+<table>
+  <tr><th>link</th><th>voltage / level</th><th>notes</th></tr>
+  <tr><td>usb → mcu board</td><td>5 V in, 3.3 V i/o</td><td>cdc-acm com port, bus-powered</td></tr>
+  <tr><td>usb → fpga uart</td><td>3.3 V bank</td><td>data only; board on own 5 V/2 A supply</td></tr>
+  <tr><td>jtag → fpga</td><td>follows target vref</td><td>adapter drives tck/tms/tdi, target drives tdo; one master per chain</td></tr>
+  <tr><td>swd → mcu (opt.)</td><td>3.3 V vtref</td><td>on-board st-link jumpers off</td></tr>
+  <tr><td>mcu ↔ fpga uart</td><td>3.3 ↔ vcco</td><td>level translator if the bank is 1.8 V</td></tr>
+  <tr><td>ground</td><td>single star point</td><td>connected before any signal cable</td></tr>
+</table>
+</div>
+<p><b>jtag is a debug interface, not a compute board:</b> it executes no user workload; it bridges usb to a target's test access port, its
+i/o voltage follows the target's vref, and it speaks a different protocol from the uart boards. the c++ mocks share one
+<code>DeviceAdapter</code> interface (discovery, capabilities, connect/disconnect, telemetry). but only the mcu and fpga report
+<code>can_run_workloads = true</code>, and every reply and ui card is labelled <b>simulated</b>. <b>recoverable failure:</b> injecting
+<code>timeout_once</code> makes the next operation wait 400 ms, return <code>timeout, recoverable</code> and fault the link. telemetry is
+refused until a reconnect, which succeeds. integration plan (8 steps: schematics → one board at a time → ground first → read-only
+software → jtag with target powered → link last → timeouts → reverse disconnect) and limitations are in <code>docs/embedded_design.md</code>.</p>
+
+<h2>6. backpropagation (task f)</h2>
+<div class="two bp">
+<div>
+<table>
+  <tr><th>param</th><th>∂J/∂θ analytic</th><th>central diff. (ε = 1e-6)</th><th>|err|</th><th>after step</th></tr>
+  <tr><td>w</td><td>−1.2094644752</td><td>−1.2094644751</td><td>1.1e-10</td><td>0.6209464475</td></tr>
+  <tr><td>b</td><td>−1.2094644752</td><td>−1.2094644751</td><td>1.1e-10</td><td>0.1209464475</td></tr>
+  <tr><td>v</td><td>−0.7106820475</td><td>−0.7106820474</td><td>5.3e-11</td><td>1.0710682047</td></tr>
+  <tr><td>c</td><td>−1.5378828427</td><td>−1.5378828426</td><td>1.1e-10</td><td>0.1537882843</td></tr>
+</table>
+<p>forward: z = 0.5, h = ŷ = 0.4621171573, J = 1.1825418190 → 0.6857737650 after the handwritten update. all gradients are negative
+because ŷ &lt; y and each parameter raises ŷ, so descent increases all four. the c++ code uses the hand-derived chain rule (no autodiff);
+values match an independent python computation to 1e-14.</p>
+</div>
+<div class="fig"><img src="../results/backprop_loss.svg" alt=""><div class="cap">fig 5. loss over 101 steps, log axis (results/backprop_loss.csv). it falls monotonically and roughly geometrically to ~1e-20: one sample can be fit exactly, and near the optimum the loss is locally quadratic.</div></div>
+</div>
+
+<h2>7. tests</h2>
+<p><b>65 / 65 pass</b> (<code>ctest</code>, output in <code>docs/test_output.txt</code>): fea 11 (assembly invariants, bcs, exact nodes, midpoint =
+qh²/8k, order 2, peak location, invalid inputs), batch/threads 10 (seed reproducibility, ranges, serial = parallel for 1/2/3/4/7 workers,
+input order, cancel, pool reuse after exceptions, worker capping, single-cpu path), stl 12 and csv 8 (valid, crlf/bom/uppercase, every
+rejection class, limits, fixture files), hardware 8 (discovery, jtag not a compute target, state machine, deterministic telemetry, timeout
+and recovery), backprop 6 (reference values, gradient check, wrong-derivative challenge, update, monotone loss), transport/api 10 (url and
+header parsing, path traversal blocked, 400/404/409/422 with hints, binary payload layout, job export, cancelled jobs publish nothing,
+hardware recovery over http). the ui was additionally checked by hand in a browser at desktop and 375 px widths.</p>
+
+<h2>8. limitations</h2>
+<ul>
+  <li>physics: 1d, steady, constant k, uniform q, dirichlet ends only.</li>
+  <li>stl ascii only, no repair or edge extraction; the units selector labels, it does not convert. csv: one fixed schema;
+    ansys text exports need renaming (documented, not tested against a live ansys install).</li>
+  <li>performance measured on a single hybrid-core laptop with turbo; ±5 % between sessions.</li>
+  <li>hardware is simulated end to end; pinouts are assumptions until checked against real schematics.</li>
+  <li>local single-user http server (no auth, loopback only); unsigned exe may trigger a smartscreen “run anyway”.</li>
+  <li>ai assistance was used extensively and is disclosed in <code>docs/ai_use_log.md</code> with every error it made.</li>
+</ul>
+</body>
+</html>
