@@ -25,6 +25,7 @@ endif()
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" WB_BT)
 set(WB_FLAGS_STRING "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${WB_BT}} -std=c++17")
+string(STRIP "${WB_FLAGS_STRING}" WB_FLAGS_STRING)
 
 # ---- core: engineering logic, no transport or ui code ----------------------
 add_library(wb_core STATIC
