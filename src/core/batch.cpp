@@ -137,6 +137,7 @@ BenchReport run_benchmark(const BenchConfig& cfg, int logical_cpus,
     const std::size_t total_runs = runs_per_config * (workers.size() + 1);
     std::size_t runs_done = 0;
     auto tick = [&] { if (progress) progress(++runs_done, total_runs); };
+    if (progress) progress(0, total_runs);  // first real tick only arrives after a full run
 
     using clock = std::chrono::steady_clock;
     auto seconds_since = [](clock::time_point t0) {
