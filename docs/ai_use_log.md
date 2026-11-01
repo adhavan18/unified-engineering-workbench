@@ -12,7 +12,7 @@ session, and every "wrong" item below actually happened and is visible in the gi
 | python 3 (local) | – | independent reference values for the backprop tests and the study sheet |
 | microsoft edge (headless) | – | rendering svg plots to png for visual checks, report pdf |
 
-session: 2026-11-01, roughly 09:55–11:00 local time. all commits in `repo/` from that window were made
+session: 2026-11-01, roughly 09:55–11:05 local time. all commits in `repo/` from that window were made
 during this session and carry a `Co-Authored-By: Claude` trailer.
 
 ## representative prompts (verbatim, from the candidate)
@@ -64,6 +64,14 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
 8. **a misread test result.** a scripted click on the point cloud returned nothing; the cause was the test
    harness (synthetic pointer ids cannot be captured), not the picker. a real click worked. the viewer was
    still hardened to ignore capture failures.
+
+9. **files left out of version control.** the report tool (`tools/report_main.cpp`, `src/report/`) generated
+   every file in `results/` but was never `git add`-ed, so the committed CMakeLists referred to files the repo
+   did not contain. found by checking `git status` before packaging; committed, and a fresh clone was built
+   and tested to confirm the repo is complete.
+10. **an absolute path in a saved log.** the launcher logged the frontend folder as a full machine path, which
+   the brief forbids in the submission. the launcher now logs it relative to the exe; the one line in the
+   saved walkthrough log was made relative and marked as such.
 
 ## challenge test
 

@@ -11,4 +11,4 @@ link          = -static -static-libgcc -static-libstdc++
 runtime dlls  = windows system only: kernel32, user32, advapi32, shell32, ws2_32, ucrt (api-ms-win-crt-*)
 target        = windows 11 x64
 tested on     = windows 11 home 10.0.26200, intel core i5-1240P, 15.7 GiB ram
-browsers      = microsoft edge (chromium) via the default-browser handler
+browsers      = tested in microsoft edge (headless, chromium) and a chromium-based embedded browser; needs webgl 1
