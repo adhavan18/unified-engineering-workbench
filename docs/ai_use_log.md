@@ -23,6 +23,15 @@ during this session and carry a `Co-Authored-By: Claude` trailer.
 4. on the candidate id: "idk my candidateid where do i get it? is it my register number college roll no?"
 5. "do it for real man. i need alll smallcase and good submissions."
 6. "what is the task"
+7. after seeing the first version: "the ui is shit. idk if it fits thhe entir erquirements it so stupdi its not
+   interactive. idk its not looking submission ready"
+8. a pasted group-chat thread from other candidates: the google form only accepts one pdf of at most 1 mb,
+   while section 8 asks for a zip.
+
+prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
+picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt
+the ui around live interaction plus an in-app requirement checklist. prompt 8 led to a ≤ 1 mb submission pdf
+with a link to the zip and its sha-256, while waiting for the organisers' answer.
 
 the prompts were short; the brief itself served as the specification. the assistant was asked (by its own
 operating rules and by prompt 5) to work from the brief, keep the docs lowercase and not fabricate evidence.
@@ -72,6 +81,18 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
 10. **an absolute path in a saved log.** the launcher logged the frontend folder as a full machine path, which
    the brief forbids in the submission. the launcher now logs it relative to the exe; the one line in the
    saved walkthrough log was made relative and marked as such.
+
+11. **the first ui was functionally complete but not good enough.** every view was a form plus a static
+   result, and the 3d example was a 1 m × 10 mm rod, almost a line. the candidate called this out (prompt 7);
+   the second iteration is the one submitted. the first ui is kept in the git history.
+12. **a duplicate `const` broke the whole frontend.** in the rebuilt geometry view a second `const size`
+   in one function made the module fail to load, so every page went blank. `node --check` did not flag it;
+   the browser console did. headless screenshots of blank pages were the first symptom.
+13. **a log-scale plot that hid the point.** the pointwise error is exactly zero at every node, so on a log
+   axis the arches became a wall of spikes down to the clamp value. switched to a linear axis, where the
+   arches (and their tops, the midpoint errors) read directly.
+14. **screenshot tooling, not the app:** headless edge never finished a capture of the live benchmark chart
+   (constant polling keeps its virtual clock from settling). the finished job is shown instead, reopened by id.
 
 ## challenge test
 

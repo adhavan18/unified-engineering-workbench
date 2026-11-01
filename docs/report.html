@@ -49,8 +49,11 @@ windows 11 x64 · c++17 backend, local web ui · tested on intel core i5-1240P, 
     <code>src/frontend</code> only draws. every number on screen is computed in c++.</li>
   <li><b>no third-party libraries.</b> a hand-written webgl viewer and canvas plots keep licensing trivial and the zip small (≈ 4 MB exe).
     the cost is less polish than a full 3d library; the benefit is that every line can be explained in a review.</li>
-  <li><b>responsive under load.</b> each http request has its own thread; long work (fea sweeps, benchmarks) runs as a job with progress
-    and cancel. a job publishes its result in one step only when it finishes, so cancelling never leaves half-written results or exports.</li>
+  <li><b>interactive, not form-and-submit.</b> the fea re-solves every mesh while a slider moves (a synchronous route, ~10 ms per update);
+    benchmark runs stream into a live chart; telemetry streams with sparklines; the backprop graph can be scrubbed through all 101 steps.
+    an overview page maps every bullet of this brief to the place in the app that satisfies it.</li>
+  <li><b>responsive under load.</b> each http request has its own thread; long work (huge fea meshes, benchmarks) runs as a job with
+    progress and cancel. a job publishes its result in one step only when it finishes, so cancelling never leaves half-written results.</li>
   <li><b>actionable errors.</b> parsers report <i>what</i> is wrong, the <i>line</i>, and a <i>hint</i> on how to fix the file
     (e.g. “this is a binary stl: re-export with ‘ascii’ selected”). the ui validates inputs before sending; the backend validates again.</li>
 </ul>
@@ -197,13 +200,15 @@ values match an independent python computation to 1e-14.</p>
 </div>
 
 <h2>7. tests</h2>
-<p><b>65 / 65 pass</b> (<code>ctest</code>, output in <code>docs/test_output.txt</code>): fea 11 (assembly invariants, bcs, exact nodes, midpoint =
-qh²/8k, order 2, peak location, invalid inputs), batch/threads 10 (seed reproducibility, ranges, serial = parallel for 1/2/3/4/7 workers,
-input order, cancel, pool reuse after exceptions, worker capping, single-cpu path), stl 12 and csv 8 (valid, crlf/bom/uppercase, every
-rejection class, limits, fixture files), hardware 8 (discovery, jtag not a compute target, state machine, deterministic telemetry, timeout
-and recovery), backprop 6 (reference values, gradient check, wrong-derivative challenge, update, monotone loss), transport/api 10 (url and
-header parsing, path traversal blocked, 400/404/409/422 with hints, binary payload layout, job export, cancelled jobs publish nothing,
-hardware recovery over http). the ui was additionally checked by hand in a browser at desktop and 375 px widths.</p>
+<p><b>77 / 77 pass</b> (<code>ctest</code>, output in <code>docs/test_output.txt</code>): fea 11 (assembly invariants, bcs, exact nodes, midpoint =
+qh²/8k, order 2, peak location, invalid inputs), mesh study 7 (exact peak, error arches vanish at nodes, csv row counts, limits, cancel),
+batch/threads 11 (seed reproducibility, ranges, serial = parallel for 1/2/3/4/7 workers, input order, cancel, pool reuse after exceptions,
+worker capping, interleaved run order, single-cpu path), stl 12 and csv 8 (valid, crlf/bom/uppercase, every rejection class, limits, fixture
+files), hardware 8 (discovery, jtag not a compute target, state machine, deterministic telemetry, timeout and recovery), backprop 6 (reference
+values, gradient check, wrong-derivative challenge, update, monotone loss), transport/api 14 (url and header parsing, path traversal blocked,
+400/404/409/422 with hints, binary payload layout, stl unit conversion, live and exported fea, job export, cancelled jobs publish nothing,
+hardware recovery over http). every view was also exercised by hand in a browser (sliders, hover, zoom, streaming, fault injection) at
+desktop and 375 px widths.</p>
 
 <h2>8. limitations</h2>
 <ul>

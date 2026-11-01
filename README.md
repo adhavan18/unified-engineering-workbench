@@ -37,13 +37,16 @@ is optional; `Launch.exe` never needs it.
 
 ## what's inside
 
-| view | task | what it does |
+| view | task | what you can do |
 |---|---|---|
-| geometry | b | ascii stl (rotate / pan / zoom / fit) and nodal-temperature csv as a coloured point cloud with legend (°C) and click-to-inspect |
-| thermal analysis | c | 1d steady fe rod solver, N = 10/20/40/80, exact comparison, midpoint errors, convergence, csv/png export |
-| performance | d | fixed-seed batch of rod solves, serial vs bounded worker pool (1/2/4 threads), 5 reps, median, speedup, efficiency, 1e-8 °C agreement |
-| hardware | e | simulated mcu, fpga and jtag adapters: discovery, capabilities, connect/disconnect, telemetry, injected timeout + recovery |
-| backprop | f | forward pass, analytic vs central-difference gradients, one update, 100-step loss curve |
+| overview | a | see every task's live result from the backend, and a checklist that maps each bullet of the brief to the place in the app that meets it (click a row to jump there) |
+| geometry & results | b | open or drag-drop an ascii stl and a nodal csv; one 3d scene with grid, axis gizmo, animated iso/top/front/right views, mesh opacity, wireframe, three colour maps, colour range, a temperature threshold, hover tooltips and click-to-pin node inspection; png snapshot |
+| thermal fea | c | drag k, q, T(0), T(L), L and the solver re-runs every mesh live; kpis (peak, end heat flows vs qAL, finest-mesh error, observed order), temperature plot, pointwise error arches, convergence plot, error table, csv exports; "run as job" for huge meshes with progress and cancel |
+| multicore | d | pick workers and workload, watch every run's time stream into a live chart, then median bars with min–max whiskers, speedup vs ideal, agreement check, csv exports |
+| embedded | e | discover the three simulated devices, connect/disconnect, stream telemetry with sparklines, inject a timeout and recover; the topology recolours by link state |
+| backprop | f | change x, y, the start parameters and η live; a computation graph shows forward values and gradients; scrub or play through all 101 steps; gradient check table |
+
+every plot supports box zoom (double-click resets), legend toggles, hover readouts and png export.
 
 long computations run as background jobs with a progress bar and **cancel** in the status bar. a cancelled
 job never publishes partial results, so earlier results and exports stay intact.
@@ -60,6 +63,7 @@ Launch.exe ──► src/app/main.cpp        starts the server on 127.0.0.1, ope
                     │
                src/core/               engineering logic, no http or ui knowledge
                  fea1d.*               assembly, dirichlet bcs, thomas solver, exact solution, error norms
+                 thermal_study.*       multi-mesh study shared by the live route, the job and wb_report
                  batch.* worker_pool.* case generator, serial + pooled batch runs, benchmark harness
                  stl.* nodal_csv.*     strict parsers with line numbers and fix-it hints
                  hardware.*            device adapter interface + three mocks
@@ -69,7 +73,7 @@ Launch.exe ──► src/app/main.cpp        starts the server on 127.0.0.1, ope
 src/frontend/  (served as app/www)     index.html, css, js: tabs, webgl viewer, canvas plots
 tools/                                 wb_report (regenerates results/), wb_datagen (example + size-test data),
                                        experiments/ (timing probes used in the performance analysis)
-tests/                                 65 unit, numerical, negative and api tests (no external framework)
+tests/                                 77 unit, numerical, negative and api tests (no external framework)
 ```
 
 the browser never computes anything: every number shown comes from the c++ backend. stl and csv uploads are
@@ -137,13 +141,13 @@ a dev build finds the frontend in `src/frontend` and the examples in `data/` aut
   [results/launch_to_ready.csv](results/launch_to_ready.csv)); browser start-up comes on top.
 - **backprop:** all four gradients agree with central differences to ≤ 1.2e-10; loss 1.1825 → 0.6858 after the
   handwritten step, ~1e-20 after 101 steps.
-- **tests:** 65 / 65 pass ([docs/test_output.txt](docs/test_output.txt)).
+- **tests:** 77 / 77 pass ([docs/test_output.txt](docs/test_output.txt)).
 
 ## known limitations
 
 - 1d, steady, constant-property, uniform-q rod only; dirichlet ends only (no convection or flux bcs).
-- stl: ascii only; meshes are drawn flat-shaded without edge extraction or repair. the "units" selector labels
-  values, it does not convert them. no mesh-to-result registration (out of scope per the brief).
+- stl: ascii only; flat-shaded, no repair; wireframe is offered up to 400k triangles. the stl unit is converted
+  to metres so it can overlay metre-based results, but there is no mesh-to-result registration (out of scope).
 - csv: exactly one schema; ansys text exports must be renamed / comma-separated first (see provenance notes).
   float32 positions on the gpu (fine for display; inspection shows the parsed doubles' float32 view).
 - the performance numbers come from one laptop with hybrid p/e cores and a turbo budget; single-thread

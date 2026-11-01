@@ -25,6 +25,18 @@ licence: same as the rest of the submission (free to use for assessment).
 | values | T(x) = 100 − 80x + 500 x(1 − x) °C. lateral faces are insulated, so T is uniform across each cross-section. peak 188.2 °C at x = 0.42 m |
 | schema | `node_id,x_m,y_m,z_m,temperature_C`: integer id ≥ 0, coordinates in metres, temperature in °C, comma-separated, `.` decimal point, 6 decimals |
 
+## data/examples/heatsink_nodal_temperatures_synthetic.csv
+
+> **synthetic data. this is not an ansys export and not a simulation result.** it is a made-up but
+> physically shaped field so the 3d results view has something meaningful to show on the example geometry.
+
+| | |
+|---|---|
+| what | 6,363 nodes filling the heat-sink geometry above (2 mm grid in the base, 1 × 2 × 2.5 mm in the fins) |
+| units | coordinates in **metres** (the stl is in millimetres; with "mm" selected the two overlay exactly), temperature in °C |
+| model | a gaussian hot spot under the base centre, T = 25 + 60·exp(−r²/(2·18 mm²))·(1 − 0.04 z), and in each fin the straight-fin profile θ(s) = cosh(m(H − s))/cosh(mH) with m = 60 1/m, H = 25 mm. range 28.3–85 °C |
+| schema | same as below: `node_id,x_m,y_m,z_m,temperature_C`, 4 decimals for coordinates, 3 for temperature |
+
 ## mapping a real ansys mechanical export onto the schema
 
 native ansys project/result files (.wbpj, .rst, .rth) are out of scope. the supported path is a text export
