@@ -1,4 +1,5 @@
-// shared ui pieces: status bar, job progress, toasts, form validation.
+// shared ui pieces: status bar, job progress, toasts, kpi tiles, slider fields,
+// form validation and number formatting.
 
 import { cancelJob } from './api.js';
 
@@ -8,7 +9,7 @@ export function setStatus(text) {
   $('#status-text').textContent = text;
 }
 
-export function toast(title, { hint = '', kind = 'error', ms = 7000 } = {}) {
+export function toast(title, { hint = '', kind = 'error', ms = 6500 } = {}) {
   const el = document.createElement('div');
   el.className = `toast ${kind === 'error' ? '' : kind}`;
   const b = document.createElement('b');
@@ -65,19 +66,19 @@ export function initJobCancel() {
   });
 }
 
-// ---- form validation --------------------------------------------------------
-// rules mirror the backend checks so mistakes are caught before a request;
-// the backend still validates everything.
+// ---- validation -------------------------------------------------------------
+// mirrors the backend checks so mistakes are caught instantly; the backend
+// still validates everything it receives.
 
 const RULES = {
-  pos: (v) => (Number.isFinite(+v) && v.trim() !== '' && +v > 0 ? '' : 'enter a positive number'),
-  num: (v) => (Number.isFinite(+v) && v.trim() !== '' ? '' : 'enter a number'),
-  temp: (v) => (!Number.isFinite(+v) || v.trim() === '' ? 'enter a number' : +v < -273.15 ? 'below absolute zero' : ''),
+  pos: (v) => (v.trim() !== '' && Number.isFinite(+v) && +v > 0 ? '' : 'enter a positive number'),
+  num: (v) => (v.trim() !== '' && Number.isFinite(+v) ? '' : 'enter a number'),
+  temp: (v) => (v.trim() === '' || !Number.isFinite(+v) ? 'enter a number' : +v < -273.15 ? 'below absolute zero (−273.15 °C)' : ''),
   int: (v) => (/^\s*\d+\s*$/.test(v) && +v >= 1 ? '' : 'enter a whole number ≥ 1'),
   int0: (v) => (/^\s*\d+\s*$/.test(v) ? '' : 'enter a whole number ≥ 0'),
   intlist: (v) => {
     const parts = v.split(',').map((s) => s.trim()).filter(Boolean);
-    if (!parts.length) return 'list at least one value, e.g. 10,20,40';
+    if (!parts.length) return 'pick at least one';
     return parts.every((p) => /^\d+$/.test(p) && +p >= 1) ? '' : 'comma-separated whole numbers ≥ 1';
   },
 };
@@ -87,21 +88,52 @@ export function validateForm(form) {
   const values = {};
   for (const input of form.querySelectorAll('input[data-rule]')) {
     const msg = RULES[input.dataset.rule](input.value);
-    const label = input.closest('.field');
-    label.querySelector('.field-error')?.remove();
+    const field = input.closest('.field') || input.parentElement;
+    field.querySelector('.field-error')?.remove();
     input.setAttribute('aria-invalid', msg ? 'true' : 'false');
     if (msg) {
       ok = false;
       const e = document.createElement('span');
       e.className = 'field-error';
       e.textContent = msg;
-      label.appendChild(e);
+      field.appendChild(e);
     }
     values[input.name] = input.value.trim().replace(/\s+/g, '');
   }
-  if (!ok) form.querySelector('[aria-invalid="true"]')?.focus();
   return ok ? values : null;
 }
+
+// wires every [data-slider] field: the range and the text box mirror each
+// other, and onChange fires continuously while dragging.
+export function bindSliders(root, onChange) {
+  for (const field of root.querySelectorAll('[data-slider]')) {
+    const range = field.querySelector('input[type="range"]');
+    const text = field.querySelector('input[type="text"]');
+    range.min = field.dataset.min;
+    range.max = field.dataset.max;
+    range.step = field.dataset.step;
+    range.value = text.value;
+    range.addEventListener('input', () => { text.value = range.value; onChange(); });
+    text.addEventListener('input', () => {
+      if (Number.isFinite(+text.value) && text.value.trim() !== '') range.value = text.value;
+      onChange();
+    });
+  }
+}
+
+export function setField(root, name, value) {
+  const text = root.querySelector(`[name="${name}"]`);
+  text.value = value;
+  const range = text.closest('[data-slider]')?.querySelector('input[type="range"]');
+  if (range) range.value = value;
+}
+
+export function debounce(fn, ms) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// ---- display helpers ----------------------------------------------------------
 
 export function setFacts(dl, pairs) {
   dl.replaceChildren();
@@ -114,11 +146,26 @@ export function setFacts(dl, pairs) {
   }
 }
 
+// tiles: [{ label, value, unit?, foot?, ok? }]
+export function setKpis(el, tiles) {
+  el.replaceChildren(...tiles.map((t) => {
+    const d = document.createElement('div');
+    d.className = `kpi${t.ok ? ' ok' : ''}`;
+    d.innerHTML = '<div class="label"></div><div class="value"></div><div class="foot"></div>';
+    d.querySelector('.label').textContent = t.label;
+    const v = d.querySelector('.value');
+    v.textContent = t.value;
+    if (t.unit) { const s = document.createElement('small'); s.textContent = t.unit; v.appendChild(s); }
+    d.querySelector('.foot').textContent = t.foot || '';
+    return d;
+  }));
+}
+
 export function fmt(v, digits = 4) {
   if (v === null || v === undefined || Number.isNaN(v)) return '–';
   if (v === 0) return '0';
   const a = Math.abs(v);
-  if (a < 1e-3 || a >= 1e6) return v.toExponential(digits - 1);
+  if (a < 1e-3 || a >= 1e6) return v.toExponential(Math.max(0, digits - 1));
   return Number(v.toPrecision(digits)).toString();
 }
 
@@ -128,4 +175,19 @@ export function cell(tr, text, cls) {
   if (cls) td.className = cls;
   tr.appendChild(td);
   return td;
+}
+
+export function chips(container, values, selected, onToggle, { suffix = '' } = {}) {
+  container.replaceChildren(...values.map((v) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = `${v}${suffix}`;
+    b.setAttribute('aria-pressed', String(selected.includes(v)));
+    b.addEventListener('click', () => {
+      b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+      onToggle(values.filter((_, i) => container.children[i].getAttribute('aria-pressed') === 'true'));
+    });
+    return b;
+  }));
 }

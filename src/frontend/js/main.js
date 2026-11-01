@@ -1,23 +1,36 @@
-// app shell: tabs, backend heartbeat, activity log, quit, png export.
+// app shell: routing (#/view), backend heartbeat, activity log, quit, png
+// export and the ?demo walkthrough.
 
 import { getJson, postJson } from './api.js';
-import { initJobCancel, setStatus, showError, toast } from './ui.js';
-import { initGeometry, inspectHottestNode } from './views/geometry.js';
-import { initThermal, plots as thermalPlots } from './views/thermal.js';
+import { initJobCancel, setStatus, showError } from './ui.js';
+import { initOverview, refreshOverview } from './views/overview.js';
+import { initGeometry, inspectHottestNode, loadExamples } from './views/geometry.js';
+import { initThermal, plots as thermalPlots, solveLive } from './views/thermal.js';
 import { initPerformance, plots as perfPlots, showJob as showPerfJob } from './views/performance.js';
-import { initHardware } from './views/hardware.js';
-import { initBackprop, showBackprop, plots as bpPlots } from './views/backprop.js';
+import { discover, initHardware, stopStreams } from './views/hardware.js';
+import { initBackprop, plots as bpPlots, showBackprop } from './views/backprop.js';
 
 const $ = (s) => document.querySelector(s);
 const plots = { ...thermalPlots, ...perfPlots, ...bpPlots };
+const VIEWS = ['overview', 'geometry', 'thermal', 'performance', 'hardware', 'backprop'];
+const firstShow = new Set();
+let status = null;
 
-function selectView(name) {
-  for (const tab of document.querySelectorAll('.tabs button')) {
-    tab.setAttribute('aria-selected', String(tab.dataset.view === name));
+function go(name) {
+  if (!VIEWS.includes(name)) name = 'overview';
+  if (location.hash !== `#/${name}`) history.replaceState(null, '', `${location.pathname}${location.search}#/${name}`);
+  for (const b of document.querySelectorAll('.nav button')) {
+    if (b.dataset.view === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
   for (const v of document.querySelectorAll('.view')) v.hidden = v.id !== `view-${name}`;
-  if (name === 'backprop') showBackprop();
-  try { localStorage.setItem('wb.view', name); } catch { /* storage may be blocked */ }
+  window.scrollTo({ top: 0 });
+  if (!firstShow.has(name)) {
+    firstShow.add(name);
+    if (name === 'thermal') solveLive();
+    if (name === 'backprop') showBackprop();
+    if (name === 'hardware') discover();
+    if (name === 'overview') refreshOverview(status);
+  }
 }
 
 async function heartbeat() {
@@ -44,81 +57,83 @@ async function refreshLog() {
 }
 
 async function start() {
-  for (const tab of document.querySelectorAll('.tabs button')) {
-    tab.addEventListener('click', () => selectView(tab.dataset.view));
-  }
   initJobCancel();
-
-  let status = null;
   try {
     status = await getJson('/api/status');
     $('#conn').className = 'pill pill-ok';
     $('#conn').textContent = 'backend running';
-    setStatus(`ready · backend up ${status.ready_ms.toFixed(0)} ms after launch · ${status.system.cpu}`);
+    $('#machine').textContent = `${status.system.cpu} · ${status.system.logical_cpus} threads · ready in ${status.ready_ms.toFixed(0)} ms`;
+    setStatus(`ready · backend up ${status.ready_ms.toFixed(0)} ms after launch`);
   } catch (e) {
     showError(e, 'startup');
   }
 
+  initOverview(go);
   initGeometry();
   initThermal();
   initPerformance(status);
   initHardware();
   initBackprop();
 
+  for (const b of document.querySelectorAll('.nav button')) b.addEventListener('click', () => go(b.dataset.view));
+  for (const b of document.querySelectorAll('[data-goto]')) {
+    b.addEventListener('click', () => { go(b.dataset.goto); if (b.hasAttribute('data-demo')) loadExamples(); });
+  }
   for (const btn of document.querySelectorAll('[data-png]')) {
     btn.addEventListener('click', () => plots[btn.dataset.png]?.downloadPng(`${btn.dataset.png}.png`));
   }
   $('#log-toggle').addEventListener('click', () => { $('#log-drawer').hidden = !$('#log-drawer').hidden; refreshLog(); });
   $('#log-close').addEventListener('click', () => { $('#log-drawer').hidden = true; });
   $('#quit').addEventListener('click', async () => {
+    stopStreams();
     try { await postJson('/api/shutdown'); } catch { /* already gone */ }
-    document.body.innerHTML = '<main><div class="card"><h1>workbench stopped</h1><p>the backend has shut down. you can close this tab.</p></div></main>';
+    document.body.innerHTML = '<div style="display:grid;place-items:center;height:100vh;font-family:system-ui"><div style="text-align:center"><h1>workbench stopped</h1><p>the backend has shut down. you can close this tab.</p></div></div>';
   });
+  window.addEventListener('hashchange', () => go(location.hash.replace('#/', '')));
 
-  let saved = 'geometry';
-  try { saved = localStorage.getItem('wb.view') || 'geometry'; } catch { /* ignore */ }
   const params = new URLSearchParams(location.search);
-  selectView(params.get('view') || saved);
-  if (params.has('demo')) runDemo(params.get('view') || saved);
+  const initial = params.get('view') || location.hash.replace('#/', '') || 'overview';
+  go(initial);
+  if (params.has('demo')) runDemo(initial);
   if (params.has('job')) showPerfJob(params.get('job'));
 
   setInterval(heartbeat, 3000);
   setInterval(refreshLog, 1000);
-  if (status && !status.system) toast('backend status is incomplete', { kind: 'info' });
 }
 
-// ?view=<name>&demo replays the example steps a person would click, for the
-// screenshot walkthrough and the demo video. it only presses existing buttons.
+// ?view=<name>&demo replays the clicks a person would make, for the screenshot
+// walkthrough and the demo video. it only presses existing controls.
 async function runDemo(view) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const click = (sel) => document.querySelector(sel)?.click();
   if (view === 'geometry') {
-    click('#stl-example');
-    await wait(400);
-    click('#csv-example');
-    await wait(700);
+    await loadExamples();
+    await wait(300);
     inspectHottestNode();
-  } else if (view === 'thermal') {
-    click('#fea-run');
   } else if (view === 'performance') {
     click('#perf-run');
   } else if (view === 'hardware') {
-    click('#hw-discover');
-    await wait(400);
-    const jtag = $('#dev-jtag0 [data-fault]');
-    jtag.value = 'timeout_once';
-    jtag.dispatchEvent(new Event('change'));
-    await wait(300);
+    await wait(500);
+    click('#dev-jtag0 [data-fault="timeout_once"]');
+    await wait(250);
     click('#dev-jtag0 [data-act="connect"]');
     await wait(700);
     click('#dev-jtag0 [data-act="connect"]');
-    await wait(300);
-    click('#dev-jtag0 [data-act="telemetry"]');
+    await wait(250);
     click('#dev-mcu0 [data-act="connect"]');
-    await wait(300);
-    click('#dev-mcu0 [data-act="telemetry"]');
+    await wait(250);
+    for (const id of ['mcu0', 'jtag0']) {
+      const s = document.querySelector(`#dev-${id} [data-stream]`);
+      s.checked = true;
+      s.dispatchEvent(new Event('change'));
+    }
+  } else if (view === 'backprop') {
+    await wait(600);
+    const s = $('#bp-step');
+    s.value = 1;
+    s.dispatchEvent(new Event('input'));
   } else if (view === 'errors') {
-    selectView('geometry');
+    go('geometry');
     const input = $('#csv-file');
     const dt = new DataTransfer();
     dt.items.add(new File(['node_id,x_m,y_m,z_m,temperature_C\n1,0,0,0,25\n2,0.1,0,0,NaN\n'], 'broken_example.csv'));

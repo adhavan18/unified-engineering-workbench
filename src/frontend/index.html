@@ -8,259 +8,402 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <img src="img/icon.svg" alt="" width="22" height="22">
-    <span>engineering workbench</span>
-  </div>
-  <nav class="tabs" role="tablist" aria-label="views">
-    <button role="tab" data-view="geometry" aria-selected="true">geometry</button>
-    <button role="tab" data-view="thermal">thermal analysis</button>
-    <button role="tab" data-view="performance">performance</button>
-    <button role="tab" data-view="hardware">hardware</button>
-    <button role="tab" data-view="backprop">backprop</button>
-  </nav>
-  <div class="topbar-right">
-    <span id="conn" class="pill pill-muted" title="backend connection">connecting…</span>
-    <button id="quit" class="btn btn-quiet" title="stop the backend and close">quit</button>
-  </div>
-</header>
-
-<main>
-  <!-- ======================= geometry ======================= -->
-  <section id="view-geometry" class="view" role="tabpanel">
-    <div class="view-head">
-      <h1>cad &amp; ansys data</h1>
-      <p>import an ascii stl and a nodal temperature csv. both files are parsed and validated by the c++ backend.</p>
+<div class="app">
+  <!-- ================= sidebar ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="img/icon.svg" alt="" width="30" height="30">
+      <div><b>engineering workbench</b><span>c++17 backend · local ui</span></div>
     </div>
-    <div class="grid-2">
-      <article class="card">
-        <div class="card-head">
-          <h2>geometry <span class="muted">ascii stl</span></h2>
-          <div class="row gap-s">
-            <label class="btn btn-primary file-btn">choose .stl<input id="stl-file" type="file" accept=".stl,model/stl"></label>
-            <button id="stl-example" class="btn">load example</button>
-          </div>
-        </div>
-        <div class="viewer-wrap">
-          <canvas id="stl-canvas" class="viewer" aria-label="3d stl view"></canvas>
-          <div class="viewer-tools">
-            <button class="btn btn-small" id="stl-fit">fit to view</button>
-            <button class="btn btn-small" id="stl-reset">reset</button>
-          </div>
-          <div class="viewer-empty" id="stl-empty">no geometry loaded</div>
-          <p class="viewer-hint">drag to rotate · right-drag or shift-drag to pan · scroll to zoom</p>
-        </div>
-        <div class="row gap-s wrap">
-          <label class="field-inline">stl units
-            <select id="stl-units">
-              <option value="mm">millimetres (mm)</option>
-              <option value="m">metres (m)</option>
-              <option value="in">inches (in)</option>
-            </select>
-          </label>
-          <span class="muted small">stl files carry no units; pick the unit used when exporting.</span>
-        </div>
-        <dl id="stl-info" class="facts"></dl>
-      </article>
+    <nav class="nav" aria-label="views">
+      <button data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>overview<span></span></button>
+      <button data-view="geometry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>geometry &amp; results<span class="tag">b</span></button>
+      <button data-view="thermal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.8V4a2 2 0 1 0-4 0v10.8a4 4 0 1 0 4 0z"/></svg>thermal fea<span class="tag">c</span></button>
+      <button data-view="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>multicore<span class="tag">d</span></button>
+      <button data-view="hardware"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v6M10 3v6M14 3v6M18 3v6M4 9h16v6a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z"/></svg>embedded<span class="tag">e</span></button>
+      <button data-view="backprop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/><circle cx="19" cy="12" r="2.5"/><path d="M7 11l3-4M7 13l3 4M14 6l3 4M14 18l3-4"/></svg>backprop<span class="tag">f</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <span id="conn" class="pill pill-muted">connecting…</span>
+      <div class="machine" id="machine"></div>
+      <div class="row">
+        <button class="btn btn-small btn-ghost" id="log-toggle">activity log</button>
+        <button class="btn btn-small btn-ghost btn-danger" id="quit" title="stop the backend">quit</button>
+      </div>
+    </div>
+  </aside>
 
-      <article class="card">
-        <div class="card-head">
-          <h2>nodal temperatures <span class="muted">csv</span></h2>
-          <div class="row gap-s">
-            <label class="btn btn-primary file-btn">choose .csv<input id="csv-file" type="file" accept=".csv,text/csv"></label>
-            <button id="csv-example" class="btn">load example</button>
-          </div>
+  <div class="main">
+  <!-- ================= overview ================= -->
+  <section id="view-overview" class="view page" hidden>
+    <div class="hero">
+      <div class="hero-main">
+        <div class="eyebrow" style="color:rgba(255,255,255,.8)">pass science works · common technical assignment</div>
+        <h1>unified engineering workbench</h1>
+        <p>import cad and ansys data, solve a thermal fe problem, run it on many cores, talk to (simulated) embedded hardware and check a handwritten backprop. every number on screen is computed by the c++17 backend running inside Launch.exe.</p>
+        <div class="row wrap">
+          <button class="btn btn-primary" data-goto="geometry" data-demo>load the examples</button>
+          <button class="btn" data-goto="thermal">open the fea solver</button>
         </div>
-        <div class="viewer-wrap">
-          <canvas id="csv-canvas" class="viewer" aria-label="3d point cloud view"></canvas>
-          <div class="viewer-tools">
-            <button class="btn btn-small" id="csv-fit">fit to view</button>
-            <label class="field-inline small">point size <input id="csv-size" type="range" min="2" max="14" value="6"></label>
-          </div>
-          <div class="legend" id="csv-legend" hidden>
-            <div class="legend-title">temperature (°C)</div>
-            <div class="legend-body"><div class="legend-bar"></div><div class="legend-ticks" id="csv-ticks"></div></div>
-          </div>
-          <div class="viewer-empty" id="csv-empty">no results loaded</div>
-          <p class="viewer-hint">click a node to inspect it · drag to rotate · scroll to zoom</p>
-        </div>
-        <p class="muted small">expected header: <code>node_id,x_m,y_m,z_m,temperature_C</code> (metres, degrees celsius)</p>
-        <div id="csv-badge"></div>
-        <dl id="csv-info" class="facts"></dl>
-        <div id="csv-pick" class="pick" hidden></div>
-      </article>
+        <svg class="deco" viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="3"><path d="M20 160 L70 60 L110 120 L180 30"/><circle cx="180" cy="30" r="8" fill="#fde725" stroke="none"/></svg>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>this session</h2><span class="pill pill-muted" id="ov-conn">…</span></div>
+        <dl class="facts" id="ov-session"></dl>
+      </div>
+    </div>
+    <div class="task-grid" id="ov-tasks"></div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-head">
+        <h2>requirement checklist <span class="sub">every bullet of the brief, and where to see it</span></h2>
+        <span class="muted small">click a row to jump there</span>
+      </div>
+      <div class="checklist" id="ov-checklist"></div>
     </div>
   </section>
 
-  <!-- ======================= thermal ======================= -->
-  <section id="view-thermal" class="view" role="tabpanel" hidden>
-    <div class="view-head">
-      <h1>1d steady thermal fea</h1>
-      <p>uniform rod, two-node linear elements: −d/dx(kA dT/dx) = qA with fixed end temperatures. lateral surface insulated.</p>
+  <!-- ================= geometry ================= -->
+  <section id="view-geometry" class="view page" hidden>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">task b · cad / ansys data</div>
+        <h1>geometry &amp; nodal results</h1>
+        <p>an ascii stl and a nodal-temperature csv, parsed and validated in c++, shown together in one 3d view. drop files anywhere on the viewer.</p>
+      </div>
+      <div class="row wrap">
+        <label class="btn file-btn">open .stl<input id="stl-file" type="file" accept=".stl"></label>
+        <label class="btn file-btn">open .csv<input id="csv-file" type="file" accept=".csv,text/csv"></label>
+        <button class="btn btn-primary" id="geo-examples">load examples</button>
+      </div>
     </div>
-    <div class="grid-side">
-      <form id="fea-form" class="card form" novalidate>
-        <h2>inputs</h2>
-        <label class="field">length L <span class="unit">m</span><input name="L" type="text" inputmode="decimal" value="1" data-rule="pos"></label>
-        <label class="field">area A <span class="unit">m²</span><input name="A" type="text" inputmode="decimal" value="1e-4" data-rule="pos"></label>
-        <label class="field">conductivity k <span class="unit">W/(m·K)</span><input name="k" type="text" inputmode="decimal" value="10" data-rule="pos"></label>
-        <label class="field">heat generation q <span class="unit">W/m³</span><input name="q" type="text" inputmode="decimal" value="10000" data-rule="num"></label>
-        <label class="field">T(0) <span class="unit">°C</span><input name="T0" type="text" inputmode="decimal" value="100" data-rule="temp"></label>
-        <label class="field">T(L) <span class="unit">°C</span><input name="TL" type="text" inputmode="decimal" value="20" data-rule="temp"></label>
-        <label class="field">meshes N <span class="unit">elements</span><input name="meshes" type="text" value="10,20,40,80" data-rule="intlist"></label>
-        <div class="row gap-s">
-          <button class="btn btn-primary" type="submit" id="fea-run">run analysis</button>
-          <button class="btn" type="button" id="fea-reset">brief values</button>
+    <div class="split-r">
+      <div class="stack">
+        <div class="viewer-wrap" id="geo-wrap">
+          <canvas id="geo-canvas" class="viewer" aria-label="3d view"></canvas>
+          <canvas id="geo-gizmo" class="viewer-gizmo"></canvas>
+          <div class="overlay overlay-tl">
+            <div class="seg" id="geo-views" role="group" aria-label="view">
+              <button data-v="iso" aria-pressed="true">iso</button><button data-v="top">top</button><button data-v="front">front</button><button data-v="right">right</button>
+            </div>
+            <button class="btn btn-small glass" id="geo-fit">fit</button>
+            <button class="btn btn-small glass" id="geo-png">png</button>
+          </div>
+          <div class="legend glass" id="geo-legend" hidden>
+            <div class="legend-title">temperature (°C)</div>
+            <div class="legend-body"><div class="legend-bar" id="geo-legend-bar"></div><div class="legend-ticks" id="geo-ticks"></div></div>
+          </div>
+          <div class="tooltip glass" id="geo-tip" hidden></div>
+          <div class="dropzone" id="geo-drop">
+            <div class="inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+              <b>drop an .stl or .csv here</b>
+              <span class="muted small">ascii stl in any unit · csv with node_id,x_m,y_m,z_m,temperature_C</span>
+              <button class="btn btn-primary" id="geo-examples-2">load the heat-sink examples</button>
+            </div>
+          </div>
+          <p class="viewer-hint">drag rotate · right-drag / shift-drag pan · wheel zoom · hover a node to inspect, click to pin</p>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-head"><h2>geometry file</h2><span id="stl-status"></span></div><dl class="facts" id="stl-info"><dt>status</dt><dd class="muted">no stl loaded</dd></dl></div>
+          <div class="card"><div class="card-head"><h2>results file</h2><span id="csv-status"></span></div><div id="csv-badge"></div><dl class="facts" id="csv-info"><dt>status</dt><dd class="muted">no csv loaded</dd></dl></div>
+        </div>
+      </div>
+      <div class="card inspector sticky">
+        <div class="section">
+          <h3>geometry</h3>
+          <label class="switch"><input type="checkbox" id="show-mesh" checked> show stl</label>
+          <div class="field" style="margin-top:10px">
+            <div class="field-top">stl unit <span class="unit">converted to metres in c++</span></div>
+            <select id="stl-units"><option value="mm">millimetres (mm)</option><option value="cm">centimetres (cm)</option><option value="m">metres (m)</option><option value="in">inches (in)</option></select>
+          </div>
+          <div class="field"><div class="field-top">opacity <span class="unit" id="opacity-val">100 %</span></div><input type="range" id="mesh-opacity" min="10" max="100" value="100"></div>
+          <label class="switch"><input type="checkbox" id="wireframe"> wireframe edges</label>
+        </div>
+        <div class="section">
+          <h3>results</h3>
+          <label class="switch"><input type="checkbox" id="show-points" checked> show nodes</label>
+          <div class="field" style="margin-top:10px">
+            <div class="field-top">colour map</div>
+            <div class="seg" id="cmap"><button data-c="inferno" aria-pressed="true">inferno</button><button data-c="viridis">viridis</button><button data-c="coolwarm">cool–warm</button></div>
+          </div>
+          <div class="field"><div class="field-top">show nodes ≥ <span class="unit num" id="thr-val">–</span></div><input type="range" id="threshold" min="0" max="1000" value="0" disabled></div>
+          <div class="field"><div class="field-top">colour range (°C) <button class="btn btn-small btn-ghost" id="range-auto">auto</button></div>
+            <div class="row"><input type="number" id="range-lo" step="any" aria-label="minimum °C"><span class="muted">to</span><input type="number" id="range-hi" step="any" aria-label="maximum °C"></div></div>
+          <div class="field"><div class="field-top">point size <span class="unit" id="size-val">5 px</span></div><input type="range" id="point-size" min="2" max="14" value="5"></div>
+        </div>
+        <div class="section">
+          <h3>inspect node <button class="btn btn-small btn-ghost" id="hottest">hottest</button></h3>
+          <dl class="facts" id="pick-info"><dt>node</dt><dd class="muted">hover or click a node</dd></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= thermal ================= -->
+  <section id="view-thermal" class="view page" hidden>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">task c · thermal fea</div>
+        <h1>1d steady conduction, linear elements</h1>
+        <p>−d/dx(kA dT/dx) = qA with T(0) and T(L) fixed and insulated sides. move any slider: the c++ solver re-runs every mesh and compares it with T<sub>exact</sub>(x) = T₀ + (T_L − T₀)x/L + (q/2k)x(L − x).</p>
+      </div>
+      <div class="row wrap">
+        <button class="btn" id="fea-brief">reset to brief values</button>
+        <button class="btn" id="fea-job" title="for very fine meshes: runs in the background with progress and cancel">run as job</button>
+      </div>
+    </div>
+    <div class="split">
+      <form class="card sticky" id="fea-form" novalidate>
+        <div class="section">
+          <h3>material &amp; load</h3>
+          <div class="field" data-slider="k" data-min="0.5" data-max="400" data-step="0.5"><div class="field-top">conductivity k <span class="unit">W/(m·K)</span></div><div class="field-row"><input type="range"><input type="text" inputmode="decimal" name="k" value="10" data-rule="pos"></div></div>
+          <div class="field" data-slider="q" data-min="-20000" data-max="50000" data-step="100"><div class="field-top">heat generation q <span class="unit">W/m³</span></div><div class="field-row"><input type="range"><input type="text" inputmode="decimal" name="q" value="10000" data-rule="num"></div></div>
+        </div>
+        <div class="section">
+          <h3>boundary temperatures</h3>
+          <div class="field" data-slider="T0" data-min="-50" data-max="300" data-step="1"><div class="field-top">T(0) <span class="unit">°C</span></div><div class="field-row"><input type="range"><input type="text" inputmode="decimal" name="T0" value="100" data-rule="temp"></div></div>
+          <div class="field" data-slider="TL" data-min="-50" data-max="300" data-step="1"><div class="field-top">T(L) <span class="unit">°C</span></div><div class="field-row"><input type="range"><input type="text" inputmode="decimal" name="TL" value="20" data-rule="temp"></div></div>
+        </div>
+        <div class="section">
+          <h3>geometry</h3>
+          <div class="field" data-slider="L" data-min="0.1" data-max="5" data-step="0.1"><div class="field-top">length L <span class="unit">m</span></div><div class="field-row"><input type="range"><input type="text" inputmode="decimal" name="L" value="1" data-rule="pos"></div></div>
+          <div class="field"><div class="field-top">area A <span class="unit">m²</span></div><input type="text" inputmode="decimal" name="A" value="1e-4" data-rule="pos"></div>
+        </div>
+        <div class="section">
+          <h3>meshes N <span class="muted small">elements</span></h3>
+          <div class="chips" id="mesh-chips"></div>
+          <div class="field" style="margin-top:10px"><div class="field-top">custom list</div><input type="text" name="meshes" id="meshes" value="10,20,40,80" data-rule="intlist"></div>
         </div>
       </form>
       <div class="stack">
-        <article class="card">
+        <div class="kpis" id="fea-kpis"></div>
+        <div class="card">
           <div class="card-head">
             <h2>temperature along the rod</h2>
-            <div class="row gap-s">
-              <button class="btn btn-small" data-export="solution" disabled>nodes.csv</button>
-              <button class="btn btn-small" data-export="midpoints" disabled>midpoints.csv</button>
-              <button class="btn btn-small" data-png="fea-plot">png</button>
-            </div>
+            <div class="row"><button class="btn btn-small" data-csv="nodes">nodes.csv</button><button class="btn btn-small" data-png="fea-plot">png</button></div>
           </div>
-          <canvas id="fea-plot" class="plot"></canvas>
-        </article>
-        <article class="card">
-          <div class="card-head">
-            <h2>mesh convergence</h2>
-            <div class="row gap-s">
-              <button class="btn btn-small" data-export="convergence" disabled>convergence.csv</button>
-              <button class="btn btn-small" data-png="conv-plot">png</button>
+          <canvas id="fea-plot" class="plot plot-tall"></canvas>
+          <p class="muted small" style="margin:6px 0 0">every plot: drag a box to zoom, double-click to reset, click a legend entry to hide it, hover for values.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h2>error along the rod <span class="sub">|T_fe(x) − T_exact(x)|</span></h2>
+              <div class="row"><button class="btn btn-small" data-csv="midpoints">midpoints.csv</button><button class="btn btn-small" data-png="err-plot">png</button></div>
             </div>
+            <canvas id="err-plot" class="plot"></canvas>
+            <p class="muted small" style="margin:8px 0 0">zero at every node, an arch inside each element; the arch tops are the midpoint errors the brief asks for. hide N = 10 in the legend to see the finer meshes.</p>
           </div>
-          <div class="table-wrap"><table id="fea-table" class="table"><thead><tr>
-            <th>N</th><th>h (m)</th><th>max midpoint error (°C)</th><th>theory qh²/8k (°C)</th><th>max nodal error (°C)</th><th>observed order</th>
-          </tr></thead><tbody><tr><td colspan="6" class="muted">run the analysis to fill this table</td></tr></tbody></table></div>
-          <p class="muted small">midpoint error uses fe interpolation (T<sub>i</sub>+T<sub>i+1</sub>)/2 against the exact T at the element midpoint. observed order = log(e<sub>coarse</sub>/e<sub>fine</sub>) / log(h<sub>coarse</sub>/h<sub>fine</sub>).</p>
-          <canvas id="conv-plot" class="plot plot-short"></canvas>
-        </article>
-        <article class="card prose">
-          <h2>assumptions &amp; what i learned</h2>
-          <ul>
-            <li><b>physics:</b> steady state, constant k, uniform q, insulated sides, so heat only flows along x. units are si; temperature in °C (only differences enter the equation).</li>
-            <li><b>boundary conditions:</b> both ends are dirichlet. they are imposed by moving the known column to the right-hand side and replacing the row with the identity, which keeps the matrix symmetric.</li>
-            <li><b>element:</b> stiffness kA/h·[1 −1; −1 1], consistent load qAh/2·[1 1]. the global matrix is tridiagonal, solved with the thomas algorithm.</li>
-            <li><b>debugging insight:</b> nodal errors came out at ~1e−13 °C for every mesh, which looked like "no convergence". that is a known 1d property: linear elements with exact load integration are exact at the nodes. the real discretisation error is between nodes, which is why the brief asks for midpoint errors; they fall 4× per mesh halving (order 2) and match qh²/8k exactly.</li>
-          </ul>
-        </article>
+          <div class="card">
+            <div class="card-head">
+              <h2>mesh convergence</h2>
+              <div class="row"><button class="btn btn-small" data-csv="convergence">convergence.csv</button><button class="btn btn-small" data-png="conv-plot">png</button></div>
+            </div>
+            <canvas id="conv-plot" class="plot"></canvas>
+            <p class="muted small" style="margin:8px 0 0">log–log: a slope of 2 means the error drops 4× each time h halves.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>error table</h2><span class="muted small">midpoint error uses fe interpolation (T<sub>i</sub>+T<sub>i+1</sub>)/2</span></div>
+          <div class="table-wrap"><table class="table" id="fea-table"><thead><tr>
+            <th>N</th><th>h (m)</th><th>max midpoint error (°C)</th><th>theory qh²/8k (°C)</th><th>at x (m)</th><th>max nodal error (°C)</th><th>observed order</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+        <details class="card more">
+          <summary>assumptions, units, boundary conditions and what i learned</summary>
+          <div class="prose"><ul>
+            <li><b>physics:</b> steady state, constant k, uniform q, insulated sides, so heat only flows along x. si units; temperature in °C (only differences enter the equation).</li>
+            <li><b>elements:</b> stiffness kA/h·[1 −1; −1 1] (W/K) and consistent load qAh/2·[1 1] (W), summed into a tridiagonal system solved by the thomas algorithm.</li>
+            <li><b>boundary conditions:</b> both ends are dirichlet. the known column moves to the right-hand side and the row becomes the identity, which keeps the matrix symmetric.</li>
+            <li><b>check yourself:</b> the kpi row shows heat leaving both ends; it always adds up to the heat generated, qAL (energy balance).</li>
+            <li><b>debugging insight:</b> nodal errors are ~1e−13 °C on every mesh, which first looks like "no convergence". in 1d, linear elements with exact load integration are exact at the nodes; the error lives between them (see the arches above). that is why midpoint errors are the right measure; they equal qh²/8k and converge at order 2.</li>
+          </ul></div>
+        </details>
       </div>
     </div>
   </section>
 
-  <!-- ======================= performance ======================= -->
-  <section id="view-performance" class="view" role="tabpanel" hidden>
-    <div class="view-head">
-      <h1>multicore batch solves</h1>
-      <p>the same fixed-seed batch of independent rod solves, run serially and on a bounded c++ worker pool.</p>
+  <!-- ================= performance ================= -->
+  <section id="view-performance" class="view page" hidden>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">task d · multicore</div>
+        <h1>serial vs worker-pool batch solves</h1>
+        <p>the same fixed-seed batch of independent rod solves, run serially and on a bounded pool of std::threads. configurations are interleaved each round so cpu turbo drift hits them all equally.</p>
+      </div>
+      <div class="row"><button class="btn btn-primary" id="perf-run">run benchmark</button></div>
     </div>
-    <div class="grid-side">
-      <form id="perf-form" class="card form" novalidate>
-        <h2>workload</h2>
-        <label class="field">cases <span class="unit">solves</span><input name="cases" type="text" inputmode="numeric" value="200" data-rule="int"></label>
-        <label class="field">mesh size <span class="unit">elements / case</span><input name="elements" type="text" inputmode="numeric" value="20000" data-rule="int"></label>
-        <label class="field">seed<input name="seed" type="text" inputmode="numeric" value="20261101" data-rule="int0"></label>
-        <label class="field">workers p<input name="workers" type="text" value="1,2,4" data-rule="intlist"></label>
-        <label class="field">measured repetitions<input name="reps" type="text" inputmode="numeric" value="5" data-rule="int"></label>
-        <label class="field">warm-up runs<input name="warmups" type="text" inputmode="numeric" value="1" data-rule="int0"></label>
-        <p class="muted small">k is drawn from 1–400 W/(m·K), q from 1e3–1e5 W/m³. counts above the logical cpu count are skipped.</p>
-        <div class="row gap-s">
-          <button class="btn btn-primary" type="submit" id="perf-run">run benchmark</button>
+    <div class="split">
+      <div class="stack sticky">
+        <form class="card" id="perf-form" novalidate>
+          <div class="section">
+            <h3>workload</h3>
+            <div class="field"><div class="field-top">cases <span class="unit">independent solves</span></div><input type="text" inputmode="numeric" name="cases" value="200" data-rule="int"></div>
+            <div class="field"><div class="field-top">mesh size <span class="unit">elements / case</span></div><input type="text" inputmode="numeric" name="elements" value="20000" data-rule="int"></div>
+            <div class="field"><div class="field-top">seed</div><input type="text" inputmode="numeric" name="seed" value="20261101" data-rule="int0"></div>
+            <p class="muted small" style="margin:0">k ∈ [1, 400] W/(m·K), q ∈ [1e3, 1e5] W/m³, drawn from the seed.</p>
+          </div>
+          <div class="section">
+            <h3>workers p</h3>
+            <div class="chips" id="worker-chips"></div>
+            <input type="hidden" name="workers" id="workers" value="1,2,4" data-rule="intlist">
+          </div>
+          <div class="section">
+            <h3>timing protocol</h3>
+            <div class="grid-2" style="gap:10px">
+              <div class="field"><div class="field-top">warm-up</div><input type="text" inputmode="numeric" name="warmups" value="1" data-rule="int0"></div>
+              <div class="field"><div class="field-top">measured</div><input type="text" inputmode="numeric" name="reps" value="5" data-rule="int"></div>
+            </div>
+          </div>
+        </form>
+        <div class="card"><div class="card-head"><h2>machine</h2></div><dl class="facts" id="sys-info"></dl></div>
+      </div>
+      <div class="stack">
+        <div class="kpis" id="perf-kpis"></div>
+        <div class="card">
+          <div class="card-head">
+            <h2>every run, live <span class="sub">time of each run as it finishes · hollow = warm-up</span></h2>
+            <button class="btn btn-small" data-png="runs-plot">png</button>
+          </div>
+          <canvas id="runs-plot" class="plot"></canvas>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h2>median time <span class="sub">bars · whiskers = min–max</span></h2><button class="btn btn-small" data-png="bar-plot">png</button></div>
+            <canvas id="bar-plot" class="plot"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>speedup T₁/Tₚ</h2><button class="btn btn-small" data-png="speed-plot">png</button></div>
+            <canvas id="speed-plot" class="plot"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>results</h2>
+            <div class="row"><button class="btn btn-small" data-perf-export="benchmark_summary" disabled>summary.csv</button><button class="btn btn-small" data-perf-export="benchmark_raw" disabled>raw.csv</button></div>
+          </div>
+          <div id="perf-agree"></div>
+          <div class="table-wrap"><table class="table" id="perf-table"><thead><tr>
+            <th>mode</th><th>p</th><th>runs (s)</th><th>median (s)</th><th>speedup</th><th>efficiency</th><th>max |ΔT| vs serial (°C)</th>
+          </tr></thead><tbody><tr><td colspan="7" class="muted">run the benchmark to fill this table</td></tr></tbody></table></div>
+        </div>
+        <details class="card more">
+          <summary>how to read the numbers</summary>
+          <div class="prose"><ul>
+            <li>only the solve loop is timed: case generation, thread start-up, file i/o and rendering are outside the timer. launch-to-ready is measured separately (sidebar).</li>
+            <li>each solve streams a few vectors of N doubles, so it is memory-bound; speedup flattens once threads share memory bandwidth and cache.</li>
+            <li>on hybrid cpus a thread on an efficiency core finishes later, so efficiency a little below 1 is expected. dynamic scheduling (one case at a time from an atomic counter) limits the damage.</li>
+            <li>laptop turbo budgets expire after a few seconds of load: the first round is often fastest. that is why rounds are interleaved and the median is reported.</li>
+          </ul></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= hardware ================= -->
+  <section id="view-hardware" class="view page" hidden>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">task e · embedded integration</div>
+        <h1>mcu, fpga and jtag adapter</h1>
+        <p>host-side c++ adapters with discovery, capabilities, connect/disconnect and telemetry. <b>every device is simulated</b>: nothing touches usb, serial or jtag hardware.</p>
+      </div>
+      <div class="row wrap">
+        <span class="badge badge-sim">simulated</span>
+        <button class="btn btn-primary" id="hw-discover">discover devices</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>topology <span class="sub">colours follow each device's link state · animated links carry live telemetry</span></h2></div>
+      <svg class="topology" id="topology" viewBox="0 0 900 250" role="img" aria-label="topology"></svg>
+    </div>
+    <div class="grid-3" id="hw-devices"></div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-head"><h2>interface &amp; voltage summary</h2><a class="small" href="img/block_diagram.svg" target="_blank">full block diagram ↗</a></div>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>link</th><th>level</th><th>notes</th></tr></thead>
+          <tbody>
+            <tr><td>usb → mcu board</td><td>5 V in, 3.3 V i/o</td><td>cdc-acm com port, bus-powered</td></tr>
+            <tr><td>usb → fpga uart</td><td>3.3 V bank</td><td>data only; board on its own 5 V / 2 A supply</td></tr>
+            <tr><td>jtag → fpga</td><td>follows target vref</td><td>adapter drives tck/tms/tdi, target drives tdo; one master per chain</td></tr>
+            <tr><td>swd → mcu (optional)</td><td>3.3 V vtref</td><td>remove on-board st-link jumpers first</td></tr>
+            <tr><td>mcu ↔ fpga uart</td><td>3.3 V ↔ vcco</td><td>level translator if the bank is 1.8 V</td></tr>
+            <tr><td>ground</td><td>single star point</td><td>connected before any signal cable</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted small" style="margin:10px 0 0">the jtag adapter is a <b>debug interface</b>: it drives another board's test access port, follows that board's vref and runs no workload of its own, so it is never offered as a compute target. pin numbers and the integration plan: docs/embedded_design.md.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>device log</h2><button class="btn btn-small btn-ghost" id="hw-clear">clear</button></div>
+        <pre class="log" id="hw-log"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= backprop ================= -->
+  <section id="view-backprop" class="view page" hidden>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">task f · backpropagation</div>
+        <h1>one tanh neuron, gradients by hand</h1>
+        <p>h = tanh(wx + b), ŷ = vh + c, J = ½(ŷ − y)². the c++ backend applies the chain rule written out by hand (no autodiff) and checks it with central differences.</p>
+      </div>
+      <div class="row wrap"><button class="btn" id="bp-reset">reset to brief values</button></div>
+    </div>
+    <div class="split">
+      <form class="card sticky" id="bp-form" novalidate>
+        <div class="section">
+          <h3>sample</h3>
+          <div class="field" data-slider="x" data-min="-3" data-max="3" data-step="0.1"><div class="field-top">input x</div><div class="field-row"><input type="range"><input type="text" name="x" value="1" data-rule="num"></div></div>
+          <div class="field" data-slider="y" data-min="-3" data-max="3" data-step="0.1"><div class="field-top">target y</div><div class="field-row"><input type="range"><input type="text" name="y" value="2" data-rule="num"></div></div>
+        </div>
+        <div class="section">
+          <h3>initial parameters</h3>
+          <div class="field" data-slider="w" data-min="-2" data-max="2" data-step="0.05"><div class="field-top">w</div><div class="field-row"><input type="range"><input type="text" name="w" value="0.5" data-rule="num"></div></div>
+          <div class="field" data-slider="b" data-min="-2" data-max="2" data-step="0.05"><div class="field-top">b</div><div class="field-row"><input type="range"><input type="text" name="b" value="0" data-rule="num"></div></div>
+          <div class="field" data-slider="v" data-min="-2" data-max="2" data-step="0.05"><div class="field-top">v</div><div class="field-row"><input type="range"><input type="text" name="v" value="1" data-rule="num"></div></div>
+          <div class="field" data-slider="c" data-min="-2" data-max="2" data-step="0.05"><div class="field-top">c</div><div class="field-row"><input type="range"><input type="text" name="c" value="0" data-rule="num"></div></div>
+        </div>
+        <div class="section">
+          <div class="field" data-slider="lr" data-min="0.01" data-max="1" data-step="0.01"><div class="field-top">learning rate η</div><div class="field-row"><input type="range"><input type="text" name="lr" value="0.1" data-rule="pos"></div></div>
         </div>
       </form>
       <div class="stack">
-        <article class="card">
-          <h2>machine</h2>
-          <dl id="sys-info" class="facts facts-wide"></dl>
-        </article>
-        <article class="card">
+        <div class="kpis" id="bp-kpis"></div>
+        <div class="card">
           <div class="card-head">
-            <h2>results</h2>
-            <div class="row gap-s">
-              <button class="btn btn-small" data-perf-export="benchmark_summary" disabled>summary.csv</button>
-              <button class="btn btn-small" data-perf-export="benchmark_raw" disabled>raw.csv</button>
-              <button class="btn btn-small" data-png="perf-plot">png</button>
-            </div>
+            <h2>computation graph <span class="sub">forward values in grey, ∂J/∂· in red, at step <span id="bp-step-label" class="num">0</span></span></h2>
           </div>
-          <div id="perf-agree"></div>
-          <div class="table-wrap"><table id="perf-table" class="table"><thead><tr>
-            <th>mode</th><th>p</th><th>runs (s)</th><th>median (s)</th><th>speedup T₁/Tₚ</th><th>efficiency</th><th>max |ΔT| (°C)</th>
-          </tr></thead><tbody><tr><td colspan="7" class="muted">run the benchmark to fill this table</td></tr></tbody></table></div>
-          <canvas id="perf-plot" class="plot plot-short"></canvas>
-        </article>
-        <article class="card prose">
-          <h2>reading the numbers</h2>
-          <ul>
-            <li>only the solve loop is timed. case generation, thread start-up, file i/o and rendering are outside the timer; launch-to-ready is reported separately above.</li>
-            <li>each solve is memory-bound (a few vectors of N doubles), so speedup flattens once threads compete for memory bandwidth and the shared cache.</li>
-            <li>on hybrid cpus (performance + efficiency cores) a thread placed on an efficiency core finishes later, so efficiency below 1 is expected even with perfect load balancing.</li>
-          </ul>
-        </article>
+          <svg class="graph" id="bp-graph" viewBox="0 0 900 285"></svg>
+          <div class="player" style="margin-top:8px">
+            <button class="btn btn-small" id="bp-play">▶ play</button>
+            <input type="range" id="bp-step" min="0" max="101" value="0" aria-label="training step">
+            <span class="num small muted" id="bp-step-num">step 0 / 101</span>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h2>loss J</h2><div class="row"><button class="btn btn-small" data-bp-export="loss">loss.csv</button><button class="btn btn-small" data-png="bp-loss">png</button></div></div>
+            <canvas id="bp-loss" class="plot"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>parameters</h2><button class="btn btn-small" data-png="bp-params">png</button></div>
+            <canvas id="bp-params" class="plot"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>gradient check at the start <span class="sub">central differences, ε = 1e−6, tolerance 1e−5</span></h2><button class="btn btn-small" data-bp-export="gradcheck">gradcheck.csv</button></div>
+          <div class="table-wrap"><table class="table" id="bp-table"><thead><tr>
+            <th>param</th><th>start</th><th>∂J/∂θ analytic</th><th>central difference</th><th>|error|</th><th></th><th>after 1 step</th>
+          </tr></thead><tbody></tbody></table></div>
+          <p class="prose" id="bp-explain" style="margin:10px 0 0"></p>
+        </div>
       </div>
     </div>
   </section>
-
-  <!-- ======================= hardware ======================= -->
-  <section id="view-hardware" class="view" role="tabpanel" hidden>
-    <div class="view-head">
-      <h1>embedded integration</h1>
-      <p>host-side adapters for one microcontroller, one fpga board and one jtag debug adapter. <b>every device here is simulated</b>; no usb, serial or jtag hardware is touched.</p>
-    </div>
-    <div class="row gap-s">
-      <button class="btn btn-primary" id="hw-discover">discover devices</button>
-      <span class="badge badge-sim">simulated</span>
-    </div>
-    <div id="hw-devices" class="grid-3"></div>
-    <div class="grid-2">
-      <article class="card">
-        <h2>block diagram</h2>
-        <img src="img/block_diagram.svg" alt="block diagram: host pc with usb hub to mcu board, fpga board and jtag adapter; jtag adapter drives the fpga tap" class="diagram">
-      </article>
-      <article class="card">
-        <h2>device log</h2>
-        <pre id="hw-log" class="log"></pre>
-      </article>
-    </div>
-  </section>
-
-  <!-- ======================= backprop ======================= -->
-  <section id="view-backprop" class="view" role="tabpanel" hidden>
-    <div class="view-head">
-      <h1>handwritten backprop, checked in c++</h1>
-      <p>h = tanh(wx + b), ŷ = vh + c, J = ½(ŷ − y)². x = 1, y = 2, start w = 0.5, b = 0, v = 1, c = 0, learning rate 0.1.</p>
-    </div>
-    <div class="grid-2">
-      <article class="card">
-        <h2>forward pass</h2>
-        <dl id="bp-forward" class="facts"></dl>
-        <h2 style="margin-top:16px">gradients: analytic vs central difference (ε = 1e−6)</h2>
-        <div class="table-wrap"><table id="bp-table" class="table"><thead><tr>
-          <th>param</th><th>before</th><th>∂J/∂θ analytic</th><th>central diff.</th><th>|error|</th><th>≤ 1e−5</th><th>after 1 step</th>
-        </tr></thead><tbody></tbody></table></div>
-        <div class="row gap-s">
-          <button class="btn btn-small" data-bp-export="gradcheck">gradcheck.csv</button>
-          <button class="btn btn-small" data-bp-export="loss">loss.csv</button>
-        </div>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <h2>loss over training</h2>
-          <button class="btn btn-small" data-png="bp-plot">png</button>
-        </div>
-        <canvas id="bp-plot" class="plot plot-short"></canvas>
-        <div class="prose">
-          <p>all four gradients are negative at the start: ŷ ≈ 0.462 is below the target 2, so increasing any parameter raises ŷ and lowers the loss. gradient descent steps against the gradient, so every parameter increases on the first step.</p>
-          <p>the model can hit y = 2 exactly (via c alone), so the loss keeps falling towards zero. on the log axis the curve is close to a straight line: near the optimum each step shrinks the error by roughly the same factor (geometric convergence).</p>
-        </div>
-      </article>
-    </div>
-  </section>
-</main>
+  </div>
+</div>
 
 <footer class="statusbar">
   <div id="status-text" class="status-text">ready</div>
@@ -269,10 +412,9 @@
     <div class="progress"><div class="progress-fill" id="job-fill"></div></div>
     <button class="btn btn-small" id="job-cancel">cancel</button>
   </div>
-  <button class="btn btn-small btn-quiet" id="log-toggle">activity log</button>
 </footer>
 <aside id="log-drawer" class="log-drawer" hidden>
-  <div class="card-head"><h2>activity log</h2><button class="btn btn-small" id="log-close">close</button></div>
+  <div class="card-head"><h2>activity log <span class="sub">backend</span></h2><button class="btn btn-small" id="log-close">close</button></div>
   <pre id="log-lines" class="log"></pre>
 </aside>
 <div id="toasts" class="toasts" aria-live="polite"></div>
