@@ -25,7 +25,6 @@ if ($LASTEXITCODE -ne 0) { throw "build failed" }
 Step "tests"
 ctest --test-dir build --output-on-failure
 if ($LASTEXITCODE -ne 0) { throw "tests failed; not packaging" }
-& .\build\wb_tests.exe | Out-File -Encoding utf8 docs\test_output.txt
 
 if ($RegenerateResults) {
     Step "regenerate results/"
@@ -46,6 +45,8 @@ foreach ($d in "src", "tests", "tools", "data", "docs", "results", "scripts", ".
 foreach ($f in "CMakeLists.txt", "README.md", "DEPENDENCIES.md", "toolchain.lock", ".gitignore", ".gitattributes") {
     Copy-Item $f $dist
 }
+# fresh test output for this exact build, written into the package only
+& .\build\wb_tests.exe | Out-File -Encoding utf8 "$dist\docs\test_output.txt"
 
 Step "version-control evidence"
 git bundle create "$dist\repo\workbench.bundle" --all
