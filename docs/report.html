@@ -200,15 +200,17 @@ values match an independent python computation to 1e-14.</p>
 </div>
 
 <h2>7. tests</h2>
-<p><b>77 / 77 pass</b> (<code>ctest</code>, output in <code>docs/test_output.txt</code>): fea 11 (assembly invariants, bcs, exact nodes, midpoint =
+<p><b>78 / 78 pass</b> (<code>ctest</code>, output in <code>docs/test_output.txt</code>), and the release build compiles with
+<b>zero warnings</b> under <code>-Wall -Wextra -Wpedantic</code>: fea 11 (assembly invariants, bcs, exact nodes, midpoint =
 qh²/8k, order 2, peak location, invalid inputs), mesh study 7 (exact peak, error arches vanish at nodes, csv row counts, limits, cancel),
 batch/threads 11 (seed reproducibility, ranges, serial = parallel for 1/2/3/4/7 workers, input order, cancel, pool reuse after exceptions,
 worker capping, interleaved run order, single-cpu path), stl 12 and csv 8 (valid, crlf/bom/uppercase, every rejection class, limits, fixture
 files), hardware 8 (discovery, jtag not a compute target, state machine, deterministic telemetry, timeout and recovery), backprop 6 (reference
-values, gradient check, wrong-derivative challenge, update, monotone loss), transport/api 14 (url and header parsing, path traversal blocked,
+values, gradient check, wrong-derivative challenge, update, monotone loss), transport/api 15 (url and header parsing, path traversal blocked,
 400/404/409/422 with hints, binary payload layout, stl unit conversion, live and exported fea, job export, cancelled jobs publish nothing,
-hardware recovery over http). every view was also exercised by hand in a browser (sliders, hover, zoom, streaming, fault injection) at
-desktop and 375 px widths.</p>
+hardware recovery over http, evidence flags only for files that exist). every view was also exercised by hand in a browser (sliders, hover,
+zoom, streaming, fault injection) at desktop and 375 px widths, and <code>docs/walkthrough</code> holds 14 timestamped frames captured in real
+time from the running app (validation, a job's progress and cancel, a benchmark mid-run, timeout recovery, rejected files) with the backend log.</p>
 
 <h2>8. limitations</h2>
 <ul>

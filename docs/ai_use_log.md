@@ -12,8 +12,9 @@ session, and every "wrong" item below actually happened and is visible in the gi
 | python 3 (local) | – | independent reference values for the backprop tests and the study sheet |
 | microsoft edge (headless) | – | rendering svg plots to png for visual checks, report pdf |
 
-session: 2026-11-01, roughly 09:55–11:05 local time. all commits in `repo/` from that window were made
-during this session and carry a `Co-Authored-By: Claude` trailer.
+sessions: 2026-11-01, roughly 09:55–11:05 (first build), 11:20–12:10 (ui rebuild) and 13:40–14:30 (audit
+against the brief), local time; see [effort_log.md](effort_log.md). every commit from these windows was made
+during the sessions and carries a `Co-Authored-By: Claude` trailer.
 
 ## representative prompts (verbatim, from the candidate)
 
@@ -27,11 +28,17 @@ during this session and carry a `Co-Authored-By: Claude` trailer.
    interactive. idk its not looking submission ready"
 8. a pasted group-chat thread from other candidates: the google form only accepts one pdf of at most 1 mb,
    while section 8 asks for a zip.
+9. "is everything done? show me"
+10. "make this the best submission. fine tune this however u can and follow the doc." and, mid-way,
+    "are u following it?"
 
 prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
 picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt
 the ui around live interaction plus an in-app requirement checklist. prompt 8 led to a ≤ 1 mb submission pdf
 with a link to the zip and its sha-256, while waiting for the organisers' answer.
+
+prompt 10 drove a third pass: the assistant re-read the brief and the rubric line by line and checked each
+against the repo and the running app. what it found and fixed is items 16–19 below.
 
 the prompts were short; the brief itself served as the specification. the assistant was asked (by its own
 operating rules and by prompt 5) to work from the brief, keep the docs lowercase and not fabricate evidence.
@@ -98,6 +105,26 @@ operating rules and by prompt 5) to work from the brief, keep the docs lowercase
    with `\`; `unzip` extracted flat files named `CandidateID_Workbench\src\...`. found by unzipping the package
    in a clean folder; the script now uses windows' bundled `tar`, and both `unzip` and Expand-Archive were
    re-checked.
+
+16. **personal data in the version-control evidence.** every commit carried the candidate's personal email,
+   and the brief says "no personal data". nothing had flagged it, because the email is not in any file, only
+   in commit metadata, which goes into the git bundle and the readable commit log. found during the audit;
+   author and committer were rewritten to a github no-reply address before packaging (history otherwise
+   unchanged; the commit hashes quoted in these docs were updated to match).
+17. **stale claims in the docs.** the overview checklist marked the demo as "candidate to add" although the
+   brief explicitly accepts a timestamped screenshot walkthrough with logs, and it would have kept saying the
+   handwritten pages were missing even after they were added. the backend now reports which evidence files
+   are really in `docs/`, and the checklist ticks only those (a test pins that nothing is claimed when the
+   files are absent). the effort log and this log also gave a session window that ended before the ui
+   rebuild.
+18. **the assistant's own capture script asked for an invalid job, twice.** the first real-time capture
+   requested meshes totalling 20.0M nodes (job limit 20M), the second a 6M-element mesh (limit 5M per mesh).
+   both times the app refused correctly and the script timed out waiting for a progress bar. the third
+   attempt used 19.5M nodes in meshes of at most 4.5M elements.
+19. **a noisy error for a valid request.** typing a very fine mesh list made the live solver fire, get a
+   400 from the backend and show an error toast, although the right move is simply "use run as job". seen in
+   the captured frames. the ui now skips the live request above the same 200,000-node limit and says so in
+   the status bar. the limit messages also print `19,500,160` instead of `19500160`.
 
 ## challenge test
 

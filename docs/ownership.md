@@ -3,7 +3,8 @@
 **reused third-party code:** none. there are no external c++ or javascript libraries. only the standard
 library, the windows api and the browser's built-in webgl/canvas are used.
 
-**reused data / constants:** viridis colour-map stop values (matplotlib, cc0 public domain). standard textbook
+**reused data / constants:** inferno and viridis colour-map stop values (matplotlib, cc0 public domain) and
+the cool–warm stops from moreland's diverging map (free to use). standard textbook
 methods (linear fe for 1d conduction, the thomas algorithm, central differences) implemented from scratch.
 
 **ai-generated:** the c++ backend, frontend, tests, tools, example data generator and documentation were

@@ -5,8 +5,9 @@ benchmarks serial vs multicore batch solves, drives simulated embedded devices a
 backprop step. all backend logic, numerics, file parsing and concurrency are c++17. the ui is plain
 html/css/js served locally by the same exe.
 
-> candidate id, hours spent and the handwritten backprop pages are filled in by the candidate.
-> see [docs/effort_log.md](docs/effort_log.md) and [docs/backprop_derivation.md](docs/backprop_derivation.md).
+> candidate id, hours spent and the handwritten backprop pages (`docs/handwritten_backprop.pdf`, two pages)
+> come from the candidate. see [docs/effort_log.md](docs/effort_log.md) and
+> [docs/backprop_derivation.md](docs/backprop_derivation.md).
 
 ---
 
@@ -73,7 +74,7 @@ Launch.exe ──► src/app/main.cpp        starts the server on 127.0.0.1, ope
 src/frontend/  (served as app/www)     index.html, css, js: tabs, webgl viewer, canvas plots
 tools/                                 wb_report (regenerates results/), wb_datagen (example + size-test data),
                                        experiments/ (timing probes used in the performance analysis)
-tests/                                 77 unit, numerical, negative and api tests (no external framework)
+tests/                                 78 unit, numerical, negative and api tests (no external framework)
 ```
 
 the browser never computes anything: every number shown comes from the c++ backend. stl and csv uploads are
@@ -141,7 +142,10 @@ a dev build finds the frontend in `src/frontend` and the examples in `data/` aut
   [results/launch_to_ready.csv](results/launch_to_ready.csv)); browser start-up comes on top.
 - **backprop:** all four gradients agree with central differences to ≤ 1.2e-10; loss 1.1825 → 0.6858 after the
   handwritten step, ~1e-20 after 101 steps.
-- **tests:** 77 / 77 pass ([docs/test_output.txt](docs/test_output.txt)).
+- **tests:** 78 / 78 pass ([docs/test_output.txt](docs/test_output.txt)); the release build has zero warnings under
+  `-Wall -Wextra -Wpedantic`.
+- **demo:** [docs/walkthrough](docs/walkthrough/README.md) has 14 timestamped frames captured in real time from the
+  running app, with the backend log (the brief's "equivalent screenshot walkthrough with logs").
 
 ## known limitations
 

@@ -54,6 +54,8 @@ precision mediump float; uniform vec3 uColor;
 void main() { if (length(gl_PointCoord - vec2(0.5)) > 0.5) discard; gl_FragColor = vec4(uColor, 1.0); }`;
 
 // ---------- colour maps (perceptual stops, interpolated to a 256 lut) ----------
+// inferno and viridis: stops sampled from matplotlib's maps (van der walt & smith, cc0).
+// coolwarm: endpoints and midpoint of moreland's diverging map (2009, free to use).
 const MAPS = {
   inferno: [[0, 0, 4], [31, 12, 72], [85, 15, 109], [136, 34, 106], [186, 54, 85], [227, 89, 51], [249, 140, 10], [249, 201, 50], [252, 255, 164]],
   viridis: [[68, 1, 84], [71, 44, 122], [59, 81, 139], [44, 113, 142], [33, 144, 141], [39, 173, 129], [92, 200, 99], [170, 220, 50], [253, 231, 37]],

@@ -49,8 +49,8 @@ $cover = @"
     <tr><td>d &middot; multicore</td><td>src/core/worker_pool.*, batch.*; results/benchmark_session1-3, launch_to_ready.csv; report &sect;3</td></tr>
     <tr><td>e &middot; embedded</td><td>src/core/hardware.*; docs/embedded_design.md (block diagram, pin/voltage table, plan)</td></tr>
     <tr><td>f &middot; backprop</td><td>src/core/backprop.*; results/backprop_*; handwritten pages: docs/handwritten_backprop.pdf</td></tr>
-    <tr><td>tests, vcs, ai use</td><td>tests/ (77 tests), docs/test_output.txt, repo/workbench.bundle + commit_log.txt, docs/ai_use_log.md, docs/ownership.md</td></tr>
-    <tr><td>demo</td><td>docs/walkthrough/ (timestamped screenshots + backend log) and the demo video, if submitted separately</td></tr>
+    <tr><td>tests, vcs, ai use</td><td>tests/ (78 tests), docs/test_output.txt, repo/workbench.bundle + commit_log.txt, docs/ai_use_log.md, docs/ownership.md</td></tr>
+    <tr><td>demo</td><td>docs/walkthrough/ (14 timestamped frames captured live + backend log); docs/demo_video.mp4 if added</td></tr>
   </table>
   <p class="sub">the report follows (5 pages).</p>
 </section>
