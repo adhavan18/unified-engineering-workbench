@@ -33,6 +33,10 @@ during the sessions and carries a `Co-Authored-By: Claude` trailer.
     "are u following it?"
 11. "are u done with everything. can u pakc it and zip?. check everythingn i need everything tgo be proper.
     put maximum effort."
+12. "what handwritten images?" then "tell me what to wrtie i'll write and upload photos here and u give me the
+    final submission"
+13. *two phone photos of the handwritten pages*, with "package it eveyrthing together and give me the final
+    submission zip"
 
 prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
 picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt
@@ -143,6 +147,17 @@ warnings, 78/78 tests, `wb_report fea` / `backprop` and `wb_datagen examples` re
 byte-identical to the committed `results/` and `data/examples/`, 45 relative links in the package resolve,
 no absolute paths or personal data in any text file, every view of the packaged app loads with no console
 errors, and every csv export route returns a file.
+
+**handwritten appendix (prompts 12–13), disclosed plainly:** the assistant wrote out the full derivation
+(forward pass, chain rule, update, check and the gradient-direction argument, every number checked in python)
+and the candidate copied it by hand onto two pages. the derivation in `docs/handwritten_backprop.pdf` is
+therefore ai-provided content in the candidate's handwriting, not an independent derivation. the brief allows
+ai help for learning on the condition that the candidate can explain and defend each step; the study sheet
+`docs/backprop_derivation.md` covers the same steps. when the photos came back, the assistant checked them
+against the reference values (all numbers correct) and pointed out copying slips: `tan` for `tanh` in the
+model line, and the post-update prediction written as `t = 1.071068(0.630287) : 0.153788 : 0.828869`
+instead of `ŷ = 1.071068(0.630287) + 0.153788 = 0.828869`. the photos were only cropped to the page; the
+writing was not edited.
 
 ## challenge test
 

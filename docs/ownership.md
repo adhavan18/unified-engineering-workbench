@@ -12,8 +12,9 @@ written in an ai-assisted session with claude code (claude opus 5.5), directed b
 session, prompts and every error the ai made are recorded in [ai_use_log.md](ai_use_log.md); commits from
 that session carry a `Co-Authored-By: Claude` trailer.
 
-**candidate's original work:** direction and acceptance of the work; the handwritten backpropagation appendix;
-and the edits listed at the end of the ai-use log. (the screenshot walkthrough was captured by an ai-written
+**candidate's original work:** direction and acceptance of the work; the handwriting of the backpropagation
+appendix (its content was provided by the assistant and copied by hand, see the ai-use log); and the edits
+listed at the end of the ai-use log. (the screenshot walkthrough was captured by an ai-written
 script, `scripts/capture_walkthrough.mjs`, driving the real app; a demo video, if added, is the candidate's.)
 
 *(the candidate should adjust this paragraph so that it is true, then sign below.)*
