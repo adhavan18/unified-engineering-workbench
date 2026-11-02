@@ -2,14 +2,16 @@
 # a cover page that links to the full zip (with its sha-256) followed by the report.
 # packaging only: it reads files and prints html to pdf with microsoft edge.
 #
-#   powershell -ExecutionPolicy Bypass -File scripts\make_submission_pdf.ps1 -CandidateId ABC123 -ZipUrl https://... [-RepoUrl https://...]
+#   powershell -ExecutionPolicy Bypass -File scripts\make_submission_pdf.ps1 -CandidateId ABC123 -ZipUrl https://... [-RepoUrl https://...] [-CandidateName "..."] [-RegisterNo ...]
 #
 # run scripts\package.ps1 first so dist\<id>_Workbench.zip exists.
 
 param(
     [Parameter(Mandatory = $true)][string]$CandidateId,
     [Parameter(Mandatory = $true)][string]$ZipUrl,
-    [string]$RepoUrl = ""
+    [string]$RepoUrl = "",
+    [string]$CandidateName = "",
+    [string]$RegisterNo = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,12 +32,14 @@ $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 $commit = (git -C $root rev-parse --short HEAD).Trim()
 $date = Get-Date -Format "yyyy-MM-dd"
 $esc = [System.Net.WebUtility]::HtmlEncode($ZipUrl)
+$nameLine = if ($CandidateName -or $RegisterNo) { "<p style=`"font-size:12pt;margin:0 0 2pt`">name: <b>$([System.Net.WebUtility]::HtmlEncode($CandidateName))</b> &middot; register no: <b>$([System.Net.WebUtility]::HtmlEncode($RegisterNo))</b></p>" } else { "" }
 $repoLine = if ($RepoUrl) { $r = [System.Net.WebUtility]::HtmlEncode($RepoUrl); "<p style=`"margin:0 0 4pt`">repository (full commit history): <a href=`"$r`">$r</a></p>" } else { "" }
 
 $cover = @"
 <section class="cover">
   <div class="eyebrow">pass science works &middot; r&amp;d internship 2026&ndash;27 &middot; common technical assignment</div>
   <h1 style="font-size:24pt;margin:6pt 0 4pt">unified engineering workbench</h1>
+  $nameLine
   <p class="sub">candidate id: <b>$CandidateId</b> &middot; submitted $date &middot; git commit $commit</p>
   <div class="box" style="margin:14pt 0">
     <p style="margin:0 0 6pt"><b>the full submission is a zip</b> (Launch.exe, source, tests, data, results, docs, git bundle).
