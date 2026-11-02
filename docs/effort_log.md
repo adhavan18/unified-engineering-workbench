@@ -25,5 +25,4 @@ as stated by the candidate: worked on the assignment from 2026-11-01 at about 10
 | 2026-11-01 → 2026-11-02 | directing the ai sessions; testing the app (the fea sliders and all views together, the timeout recovery); asking for the ui rebuild because the first version was not interactive; redoing the backprop by hand for the handwritten appendix |
 
 **total:** the span above, from 2026-11-01 ~10:00 to 2026-11-02. this is the candidate's own account of when
-they worked, not a stopwatch count of focused hours, and it is far below the brief's 40–50 h target because
-most of the build was ai-assisted (see the ai-use log).
+they worked, not a stopwatch count of focused hours. most of the build was ai-assisted (see the ai-use log).
