@@ -2,13 +2,14 @@
 # a cover page that links to the full zip (with its sha-256) followed by the report.
 # packaging only: it reads files and prints html to pdf with microsoft edge.
 #
-#   powershell -ExecutionPolicy Bypass -File scripts\make_submission_pdf.ps1 -CandidateId ABC123 -ZipUrl https://...
+#   powershell -ExecutionPolicy Bypass -File scripts\make_submission_pdf.ps1 -CandidateId ABC123 -ZipUrl https://... [-RepoUrl https://...]
 #
 # run scripts\package.ps1 first so dist\<id>_Workbench.zip exists.
 
 param(
     [Parameter(Mandatory = $true)][string]$CandidateId,
-    [Parameter(Mandatory = $true)][string]$ZipUrl
+    [Parameter(Mandatory = $true)][string]$ZipUrl,
+    [string]$RepoUrl = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +30,7 @@ $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 $commit = (git -C $root rev-parse --short HEAD).Trim()
 $date = Get-Date -Format "yyyy-MM-dd"
 $esc = [System.Net.WebUtility]::HtmlEncode($ZipUrl)
+$repoLine = if ($RepoUrl) { $r = [System.Net.WebUtility]::HtmlEncode($RepoUrl); "<p style=`"margin:0 0 4pt`">repository (full commit history): <a href=`"$r`">$r</a></p>" } else { "" }
 
 $cover = @"
 <section class="cover">
@@ -39,6 +41,7 @@ $cover = @"
     <p style="margin:0 0 6pt"><b>the full submission is a zip</b> (Launch.exe, source, tests, data, results, docs, git bundle).
     the form accepts one pdf of at most 1 mb, so this pdf carries the report and a link to the zip.</p>
     <p style="margin:0 0 4pt">download: <a href="$esc">$esc</a></p>
+    $repoLine
     <p style="margin:0 0 4pt">file: ${CandidateId}_Workbench.zip &middot; $mb MB</p>
     <p style="margin:0">sha-256: <code style="font-size:8pt">$hash</code></p>
   </div>

@@ -13,7 +13,7 @@ session, and every "wrong" item below actually happened and is visible in the gi
 | microsoft edge (headless) | – | rendering svg plots to png for visual checks, report pdf |
 
 sessions: 2026-11-01, roughly 09:55–11:05 (first build), 11:20–12:10 (ui rebuild) and 13:40–14:05 (audit
-against the brief), and 2026-11-02 05:10–05:45 (final verification), local time; see [effort_log.md](effort_log.md). every commit from these windows was made
+against the brief), and 2026-11-02 05:10–05:45 and 08:55–09:40 (final verification, publishing), local time; see [effort_log.md](effort_log.md). every commit from these windows was made
 during the sessions and carries a `Co-Authored-By: Claude` trailer.
 
 ## representative prompts (verbatim, from the candidate)
@@ -37,6 +37,10 @@ during the sessions and carries a `Co-Authored-By: Claude` trailer.
     final submission"
 13. *two phone photos of the handwritten pages*, with "package it eveyrthing together and give me the final
     submission zip"
+14. "let the photos be as it is", hours / signature / own-review text, "upload to my drive where i can, max 1 mb",
+    then "also push it to github also like witrh the valid time stamps and everything" and "dont remove the
+    quality to shrink it". the drive upload tool caps files at 10 mb and the zip is 10.6 mb, so with the
+    candidate's agreement the zip went into a github release instead, unchanged (no recompression).
 
 prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
 picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt
