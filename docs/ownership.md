@@ -17,6 +17,4 @@ appendix (its content was provided by the assistant and copied by hand, see the 
 listed at the end of the ai-use log. (the screenshot walkthrough was captured by an ai-written
 script, `scripts/capture_walkthrough.mjs`, driving the real app; a demo video, if added, is the candidate's.)
 
-*(the candidate should adjust this paragraph so that it is true, then sign below.)*
-
-signed: ____________________  date: ____________
+signed: Tamil Adhavan S K (RA2311003010896)  date: 2026-11-02

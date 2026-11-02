@@ -18,12 +18,12 @@ these are wall-clock windows of an ai-assisted session, not the candidate's own 
 
 ## candidate time
 
-*(fill in with your real hours: reading and understanding the code, re-deriving the fea and backprop by
-hand, writing the handwritten appendix, reviewing and editing, recording the demo, preparing for the
-verification discussion.)*
+as stated by the candidate: worked on the assignment from 2026-11-01 at about 10:00 through 2026-11-02.
 
-| date | hours | what |
-|---|---|---|
-| | | |
+| date | what |
+|---|---|
+| 2026-11-01 → 2026-11-02 | directing the ai sessions; testing the app (the fea sliders and all views together, the timeout recovery); asking for the ui rebuild because the first version was not interactive; redoing the backprop by hand for the handwritten appendix |
 
-**total:** ___ h
+**total:** the span above, from 2026-11-01 ~10:00 to 2026-11-02. this is the candidate's own account of when
+they worked, not a stopwatch count of focused hours, and it is far below the brief's 40–50 h target because
+most of the build was ai-assisted (see the ai-use log).

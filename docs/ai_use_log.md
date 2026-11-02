@@ -167,5 +167,10 @@ tanh' = 1 − h (instead of 1 − h²) and asserts that the finite-difference ch
 
 ## candidate's own edits and review
 
-*(to be completed by the candidate: list what you changed yourself after the ai session, what you
-re-derived by hand, and which parts you can explain without notes. do not leave this empty.)*
+in the candidate's words (spelling tidied, nothing added):
+
+> i redid the backprop by hand and tested the app sliders and everything together, and the timeout
+> recovery, and asked for the ui rebuild because the first version was not interactive.
+
+the candidate chose to submit the handwritten pages as photographed. they do not include the short
+gradient-direction explanation; that explanation is in the report (§6) and in `docs/backprop_derivation.md`.
