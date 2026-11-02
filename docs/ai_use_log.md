@@ -41,6 +41,11 @@ during the sessions and carries a `Co-Authored-By: Claude` trailer.
     then "also push it to github also like witrh the valid time stamps and everything" and "dont remove the
     quality to shrink it". the drive upload tool caps files at 10 mb and the zip is 10.6 mb, so with the
     candidate's agreement the zip went into a github release instead, unchanged (no recompression).
+15. "that pdf looks like ai slop keep it natural professional i mean the font jsut black ... make it unique".
+    the report and cover were restyled as a plain technical document (black serif text, ruled tables, page
+    numbers, no colour outside the plots). the first restyle shrank every page: one plot lost its width
+    rule, rendered at 820 px and made edge scale the whole document down. found by rendering the pdf pages
+    and measuring overflow in the page; fixed with one css rule.
 
 prompt 7 drove the second iteration: the assistant listed what was actually weak (form → button → static
 picture everywhere, an almost empty 3d example, nothing showing how the brief maps to the app) and rebuilt

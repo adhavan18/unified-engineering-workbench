@@ -32,46 +32,73 @@ $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 $commit = (git -C $root rev-parse --short HEAD).Trim()
 $date = Get-Date -Format "yyyy-MM-dd"
 $esc = [System.Net.WebUtility]::HtmlEncode($ZipUrl)
-$nameLine = if ($CandidateName -or $RegisterNo) { "<p style=`"font-size:12pt;margin:0 0 2pt`">name: <b>$([System.Net.WebUtility]::HtmlEncode($CandidateName))</b> &middot; register no: <b>$([System.Net.WebUtility]::HtmlEncode($RegisterNo))</b></p>" } else { "" }
-$repoLine = if ($RepoUrl) { $r = [System.Net.WebUtility]::HtmlEncode($RepoUrl); "<p style=`"margin:0 0 4pt`">repository (full commit history): <a href=`"$r`">$r</a></p>" } else { "" }
+$enc = { param($t) [System.Net.WebUtility]::HtmlEncode($t) }
+$idRows = ""
+if ($CandidateName) { $idRows += "<tr><td>name</td><td>$(& $enc $CandidateName)</td></tr>" }
+if ($RegisterNo) { $idRows += "<tr><td>register no.</td><td>$(& $enc $RegisterNo)</td></tr>" }
+$repoRow = if ($RepoUrl) { $r = & $enc $RepoUrl; "<tr><td>repository</td><td><a href=`"$r`">$r</a><br><span class=`"note`">full commit history with the original timestamps</span></td></tr>" } else { "" }
+$appendixPages = if ($hasHandwritten) { "; handwritten appendix, last two pages" } else { "" }
 
 $cover = @"
 <section class="cover">
-  <div class="eyebrow">pass science works &middot; r&amp;d internship 2026&ndash;27 &middot; common technical assignment</div>
-  <h1 style="font-size:24pt;margin:6pt 0 4pt">unified engineering workbench</h1>
-  $nameLine
-  <p class="sub">candidate id: <b>$CandidateId</b> &middot; submitted $date &middot; git commit $commit</p>
-  <div class="box" style="margin:14pt 0">
-    <p style="margin:0 0 6pt"><b>the full submission is a zip</b> (Launch.exe, source, tests, data, results, docs, git bundle).
-    the form accepts one pdf of at most 1 mb, so this pdf carries the report and a link to the zip.</p>
-    <p style="margin:0 0 4pt">download: <a href="$esc">$esc</a></p>
-    $repoLine
-    <p style="margin:0 0 4pt">file: ${CandidateId}_Workbench.zip &middot; $mb MB</p>
-    <p style="margin:0">sha-256: <code style="font-size:8pt">$hash</code></p>
-  </div>
-  <h2>how to run</h2>
-  <p>extract the zip, double-click <code>Launch.exe</code>. the default browser opens the app on 127.0.0.1; no install, admin rights or
-  internet. vs code: open the folder, run and debug &rarr; "run workbench (packaged Launch.exe)". source build: README.md.</p>
-  <h2>what is where in the zip</h2>
-  <table>
-    <tr><th>brief section</th><th>evidence</th></tr>
-    <tr><td>a &middot; interface, one-click</td><td>Launch.exe, app/www, .vscode/, README.md; the in-app overview maps every bullet of the brief</td></tr>
-    <tr><td>b &middot; cad / ansys data</td><td>src/core/stl.*, nodal_csv.*; data/examples + data/PROVENANCE.md; results/file_size_tests.csv</td></tr>
-    <tr><td>c &middot; thermal fea</td><td>src/core/fea1d.*, thermal_study.*; results/fea_*.csv + .svg; report &sect;2</td></tr>
-    <tr><td>d &middot; multicore</td><td>src/core/worker_pool.*, batch.*; results/benchmark_session1-3, launch_to_ready.csv; report &sect;3</td></tr>
-    <tr><td>e &middot; embedded</td><td>src/core/hardware.*; docs/embedded_design.md (block diagram, pin/voltage table, plan)</td></tr>
-    <tr><td>f &middot; backprop</td><td>src/core/backprop.*; results/backprop_*; $appendixNote</td></tr>
-    <tr><td>tests, vcs, ai use</td><td>tests/ (78 tests), docs/test_output.txt, repo/workbench.bundle + commit_log.txt, docs/ai_use_log.md, docs/ownership.md</td></tr>
-    <tr><td>demo</td><td>docs/walkthrough/ (14 timestamped frames captured live + backend log); docs/demo_video.mp4 if added</td></tr>
+  <div class="kicker">pass science works &middot; r&amp;d internship 2026&ndash;27 &middot; common technical assignment</div>
+  <h1 class="title">unified engineering workbench</h1>
+  <div class="subtitle">submission cover and technical report</div>
+  <table class="ident">
+    $idRows
+    <tr><td>candidate id</td><td>$CandidateId</td></tr>
+    <tr><td>submitted</td><td>$date</td></tr>
+    <tr><td>git commit</td><td><code>$commit</code></td></tr>
   </table>
-  <p class="sub">the report follows (5 pages)$(if ($hasHandwritten) { ', then the handwritten appendix' }).</p>
+
+  <h2>submission</h2>
+  <p>the full submission is one zip: Launch.exe and the packaged app, source, tests, data, results, docs and the git bundle.
+  the form takes a single pdf of at most 1 mb, so this document carries the report and points to the zip.</p>
+  <table class="links">
+    <tr><td>zip</td><td><a href="$esc">$esc</a></td></tr>
+    $repoRow
+    <tr><td>file</td><td>${CandidateId}_Workbench.zip, $mb MB</td></tr>
+    <tr><td>sha-256</td><td><code>$hash</code></td></tr>
+  </table>
+
+  <h2>how to run</h2>
+  <p>extract the zip and double-click <code>Launch.exe</code>. the default browser opens the app on 127.0.0.1. no install,
+  admin rights or internet are needed. in vs code: open the folder, run and debug, &ldquo;run workbench (packaged
+  Launch.exe)&rdquo;. building from source is described in README.md.</p>
+
+  <h2>where things are</h2>
+  <table>
+    <tr><th>brief</th><th>evidence in the zip</th></tr>
+    <tr><td>a &nbsp;interface, one-click</td><td>Launch.exe, app/www, .vscode/, README.md; the in-app overview maps every bullet of the brief</td></tr>
+    <tr><td>b &nbsp;cad / ansys data</td><td>src/core/stl.*, nodal_csv.*; data/examples, data/PROVENANCE.md; results/file_size_tests.csv</td></tr>
+    <tr><td>c &nbsp;thermal fea</td><td>src/core/fea1d.*, thermal_study.*; results/fea_*.csv and .svg; report &sect;2</td></tr>
+    <tr><td>d &nbsp;multicore</td><td>src/core/worker_pool.*, batch.*; results/benchmark_session1&ndash;3, launch_to_ready.csv; report &sect;3</td></tr>
+    <tr><td>e &nbsp;embedded</td><td>src/core/hardware.*; docs/embedded_design.md (block diagram, pin/voltage table, plan)</td></tr>
+    <tr><td>f &nbsp;backprop</td><td>src/core/backprop.*; results/backprop_*; $appendixNote</td></tr>
+    <tr><td>tests, vcs, ai use</td><td>tests/ (78 tests), docs/test_output.txt, repo/workbench.bundle and commit_log.txt, docs/ai_use_log.md, docs/ownership.md</td></tr>
+    <tr><td>demo</td><td>docs/walkthrough/ (14 timestamped frames captured from the running app, with the backend log)</td></tr>
+  </table>
+  <p class="contents">contents: this cover; the report, five pages$appendixPages.</p>
 </section>
 "@
 
 $report = Get-Content (Join-Path $root "docs\report.html") -Raw -Encoding UTF8
 $report = $report.Replace('candidate id: ________', "candidate id: $CandidateId")
 $report = $report.Replace('<body>', "<body>`n$cover`n<div style=`"break-before: page`"></div>")
-$report = $report.Replace('</style>', "  .cover h2 { margin-top: 12pt; }`n  .eyebrow { font-size: 8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }`n</style>")
+$coverCss = @"
+  .kicker { font-variant: small-caps; letter-spacing: 0.08em; font-size: 9pt; padding-bottom: 5pt; border-bottom: 0.75pt solid #000; }
+  .title { font-size: 30pt; font-weight: 400; letter-spacing: -0.015em; margin: 26pt 0 2pt; }
+  .subtitle { font-style: italic; font-size: 11pt; margin-bottom: 16pt; }
+  table.ident, table.links { border: 0; width: auto; font-size: 9.8pt; margin: 0 0 8pt; }
+  table.ident td, table.links td { padding: 1.5pt 14pt 1.5pt 0; }
+  table.ident td:first-child, table.links td:first-child { font-style: italic; white-space: nowrap; }
+  table.links { border-top: 1pt solid #000; border-bottom: 1pt solid #000; width: 100%; }
+  table.links td { padding: 3pt 10pt 3pt 0; }
+  table.links code { font-size: 7.8pt; }
+  .note { font-size: 8pt; font-style: italic; }
+  .contents { font-style: italic; font-size: 8.5pt; margin-top: 8pt; }
+"@
+$report = $report.Replace('</style>', "$coverCss</style>")
 $tmp = Join-Path $root "docs\_submission.html"
 [System.IO.File]::WriteAllText($tmp, $report, (New-Object System.Text.UTF8Encoding($false)))
 

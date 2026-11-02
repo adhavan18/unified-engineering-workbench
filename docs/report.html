@@ -4,33 +4,45 @@
 <meta charset="utf-8">
 <title>unified engineering workbench: report</title>
 <style>
-  @page { size: A4; margin: 14mm 15mm 14mm 15mm; }
-  :root { --ink: #111827; --muted: #4b5563; --rule: #d1d5db; --accent: #0a66d8; }
+  @page {
+    size: A4; margin: 16mm 17mm 17mm 17mm;
+    @bottom-left { content: "unified engineering workbench"; font: italic 7.5pt Cambria, Georgia, serif; color: #000; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 7.5pt Cambria, Georgia, serif; color: #000; }
+  }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { font: 9.6pt/1.42 "Segoe UI", system-ui, sans-serif; color: var(--ink); margin: 0; }
-  h1 { font-size: 17pt; margin: 0 0 2pt; letter-spacing: -0.01em; }
-  h2 { font-size: 11.5pt; margin: 12pt 0 4pt; color: var(--accent); border-bottom: 1px solid var(--rule); padding-bottom: 2pt; }
-  h3 { font-size: 10pt; margin: 8pt 0 3pt; }
-  p { margin: 0 0 5pt; }
-  ul { margin: 0 0 5pt; padding-left: 14pt; }
-  li { margin: 1pt 0; }
-  code { font: 8.6pt Consolas, monospace; background: #f3f4f6; padding: 0 2pt; border-radius: 2pt; }
-  table { border-collapse: collapse; width: 100%; margin: 3pt 0 6pt; font-size: 8.8pt; font-variant-numeric: tabular-nums; }
-  th, td { border-bottom: 1px solid var(--rule); padding: 2.5pt 5pt; text-align: left; vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; background: #f9fafb; }
-  .sub { color: var(--muted); margin-bottom: 8pt; }
-  .figs { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; margin: 4pt 0 6pt; }
-  .figs img, .fig img { width: 100%; border: 1px solid var(--rule); border-radius: 3pt; }
-  .fig { margin: 4pt 0; }
-  .cap { font-size: 8pt; color: var(--muted); margin-top: 1pt; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+  body { font: 9.8pt/1.42 Cambria, Georgia, serif; color: #000; margin: 0; font-variant-numeric: lining-nums; }
+  a { color: #000; }
+  h1 { font-size: 21pt; font-weight: 400; letter-spacing: -0.01em; margin: 0 0 3pt; }
+  h2 { font-size: 10.5pt; font-weight: 700; font-variant: small-caps; letter-spacing: 0.05em; margin: 13pt 0 4pt;
+       border-top: 0.75pt solid #000; padding-top: 3pt; }
+  h3 { font-size: 9.8pt; font-style: italic; font-weight: 400; margin: 7pt 0 2pt; }
+  p { margin: 0 0 5pt; text-align: justify; hyphens: auto; }
+  ul { margin: 0 0 5pt; padding-left: 13pt; }
+  li { margin: 1.5pt 0; text-align: justify; hyphens: auto; }
+  code { font: 8.3pt Consolas, monospace; }
+  table { border-collapse: collapse; width: 100%; margin: 4pt 0 7pt; font-size: 8.8pt; font-variant-numeric: tabular-nums lining-nums;
+          border-top: 1pt solid #000; border-bottom: 1pt solid #000; }
+  th, td { padding: 2.2pt 5pt; text-align: left; vertical-align: top; }
+  th { font-weight: 700; border-bottom: 0.5pt solid #000; }
+  .sub { font-style: italic; font-size: 9pt; margin-bottom: 4pt; padding-bottom: 6pt; border-bottom: 1.5pt solid #000; }
+  .figs { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; margin: 5pt 0 7pt; }
+  .figs img, .fig img { width: 100%; }
+  .fig { margin: 5pt 0; }
+  .cap { font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: left; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
   .break { break-before: page; }
-  .box { border: 1px solid var(--rule); border-radius: 4pt; padding: 5pt 7pt; background: #f9fafb; margin: 4pt 0 6pt; }
-  .ok { color: #15803d; font-weight: 600; }
+  .box { border-left: 1.5pt solid #000; padding: 1pt 0 1pt 8pt; margin: 6pt 0 7pt; text-align: justify; }
+  .ok { font-weight: 700; }
   .figs, .fig, table, .box, .two { break-inside: avoid; }
-  h2 { break-after: avoid; }
+  h2, h3 { break-after: avoid; }
   .bp { grid-template-columns: 1.15fr 1fr; }
   .bp td, .bp th { white-space: nowrap; }
+  .two p, .two li, .bp p { text-align: left; hyphens: manual; }
+  .fea h3 { margin-top: 6pt; }
+  .fea table { width: 100%; }
+  .narrowfig { width: 60%; margin: 4pt auto 8pt; break-inside: avoid; }
+  .narrowfig img { width: 100%; }
+  .perf h3 { margin-top: 2pt; }
 </style>
 </head>
 <body>
@@ -59,7 +71,7 @@ windows 11 x64 · c++17 backend, local web ui · tested on intel core i5-1240P, 
 </ul>
 
 <h2>2. thermal fea (task c)</h2>
-<div class="two">
+<div class="fea">
 <div>
 <h3>formulation</h3>
 <p>strong form −d/dx(kA dT/dx) = qA on 0 &lt; x &lt; L, T(0) = 100 °C, T(L) = 20 °C, with L = 1 m, A = 1e-4 m², k = 10 W/(m·K),
@@ -125,8 +137,8 @@ in every session (limit 1e-8). each case is computed by identical code on one th
   <tr><td>3</td><td>0.5401</td><td>0.5396 / 1.00</td><td>0.2904 / 1.86 / 0.93</td><td>0.1475 / 3.66 / 0.92</td><td>idle machine</td></tr>
   <tr><td>1</td><td>0.6800</td><td>0.7573 / 0.90</td><td>0.2920 / 2.33 / 1.16</td><td>0.1428 / 4.76 / 1.19</td><td>browser + backend active; serial reps 0.41–0.93 s</td></tr>
 </table>
-<div class="figs">
-  <div><img src="../results/benchmark_session2/benchmark_speedup.svg" alt=""><div class="cap">fig 3. speedup T₁/Tₚ, session 2 (raw reps: results/benchmark_session*/benchmark_raw.csv)</div></div>
+<div class="perf">
+  <div class="narrowfig"><img src="../results/benchmark_session2/benchmark_speedup.svg" alt=""><div class="cap">fig 3. speedup T₁/Tₚ, session 2 (raw reps: results/benchmark_session*/benchmark_raw.csv)</div></div>
   <div>
     <h3>analysis</h3>
     <ul>
@@ -160,7 +172,7 @@ truncated, wrong or extra columns, duplicate ids, T &lt; −273.15 °C, header-o
 
 <h2>5. embedded integration (task e)</h2>
 <div class="fig">
-<img src="../src/frontend/img/block_diagram.svg" alt="" style="width:88%;display:block;margin:0 auto;border:1px solid #d1d5db;border-radius:3pt">
+<img src="../src/frontend/img/block_diagram.svg" alt="" style="width:86%;display:block;margin:0 auto">
 <div class="cap">fig 4. block diagram (full pin/voltage table with connectors and pin assumptions: docs/embedded_design.md)</div>
 </div>
 <div>
